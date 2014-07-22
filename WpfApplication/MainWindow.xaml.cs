@@ -1447,7 +1447,7 @@ namespace WpfApplication1
 
         private void SGC_apply_button_Click(object sender, RoutedEventArgs e)
         {
-
+        
         }
 
         private void SGO_apply_button_Click(object sender, RoutedEventArgs e)
