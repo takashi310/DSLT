@@ -1,0 +1,20 @@
+﻿<Window x:Class="WpfApplication1.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Window1" Height="300" Width="300" Background="Black">
+    <Grid>
+        <Grid x:Name="ortho_grid" Height="Auto" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.333*"/>
+                <RowDefinition Height="0.333*"/>
+                <RowDefinition Height="0.333*"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="graphX" Stretch="Uniform" Grid.Column="0" Grid.Row="0"/>
+            <Image x:Name="graphY" Stretch="Uniform" Grid.Column="0" Grid.Row="1"/>
+            <Image x:Name="graphZ" Stretch="Uniform" Grid.Column="0" Grid.Row="2"/>
+        </Grid>
+    </Grid>
+</Window>
