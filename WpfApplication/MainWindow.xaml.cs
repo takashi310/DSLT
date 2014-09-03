@@ -23,9 +23,9 @@ namespace WpfApplication1
     public partial class MainWindow : Window
     {
         public static Class1 c1 = new Class1();
-        private int imageW;
-        private int imageH;
-        private int imageZ;
+        private int imageW = -1;
+        private int imageH = -1;
+        private int imageZ = -1;
         private SubWindow sbw = new SubWindow();
         private Window1 win1 = new Window1();
 
@@ -218,7 +218,7 @@ namespace WpfApplication1
             ortho_xy.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
             if (c1.getDstImageDataArrayXY(out data, out byteperpixel, out width, out height) == 0) return;
             dst_ortho_xy.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
-
+            
             updateGraph();
         }
 
@@ -234,7 +234,7 @@ namespace WpfApplication1
             ortho_yz.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
             if (c1.getDstImageDataArrayYZ(out data, out byteperpixel, out width, out height) == 0) return;
             dst_ortho_yz.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
-
+            
             updateGraph();
         }
 
@@ -250,7 +250,7 @@ namespace WpfApplication1
             ortho_zx.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
             if (c1.getDstImageDataArrayZX(out data, out byteperpixel, out width, out height) == 0) return;
             dst_ortho_zx.Source = BitmapSource.Create(width, height, 96, 96, PixelFormats.Rgb24, null, data, width * height * byteperpixel, width * byteperpixel);
-
+            
             updateGraph();
         }
 
@@ -326,7 +326,7 @@ namespace WpfApplication1
                 dst_line_zx_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
                 dst_line_zx_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
                 dst_line_zx_x.Y1 = 0;
-                dst_line_zx_x.Y2 = ortho_zx.ActualHeight;
+                dst_line_zx_x.Y2 = dst_ortho_zx.ActualHeight;
             }
         }
 
@@ -356,7 +356,7 @@ namespace WpfApplication1
                 dst_line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
                 dst_line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
                 dst_line_yz_y.X1 = 0;
-                dst_line_yz_y.X2 = ortho_yz.ActualWidth;
+                dst_line_yz_y.X2 = dst_ortho_yz.ActualWidth;
             }
         }
 
@@ -455,9 +455,10 @@ namespace WpfApplication1
             H_halo_slider.IsEnabled = xy_max > 1 ? true : false;
             H_halo_txt.IsEnabled = xy_max > 1 ? true : false;
 
-			ortho_grid.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-			ortho_grid.ColumnDefinitions.ElementAt(6).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-			ortho_grid.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+			ortho_grid_src.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+			ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+			ortho_grid_src.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+            ortho_grid_dst.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
 
 			ch_slider.Maximum = c1.getChannelNum() > 1 ? c1.getChannelNum() - 1 : 1;
             ch_slider.Value = 0;
@@ -622,7 +623,7 @@ namespace WpfApplication1
 
         private void ortho_grid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-
+            
         }
 
         private void ortho_xy_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1486,6 +1487,105 @@ namespace WpfApplication1
             updateImg();
         }
 
+        private void MenuItem_Reset_Click(object sender, RoutedEventArgs e)
+        {
+            ortho_view.ColumnDefinitions.ElementAt(0).Width = new GridLength(1.0, GridUnitType.Star);
+            ortho_view.ColumnDefinitions.ElementAt(2).Width = new GridLength(1.0, GridUnitType.Star);
+        }
+
+        private void ortho_view_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            GridLength width = ortho_view.ColumnDefinitions.ElementAt(0).Width;
+        }
+
+        private void view_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (imageW < 0 || imageH < 0 || imageZ < 0) return;
+
+            var parent = LogicalTreeHelper.GetParent((DependencyObject)sender);
+            if (parent is Grid)
+            {
+                Grid root = (Grid)parent;
+                int row = Grid.GetRow((UIElement)sender);
+                int col = Grid.GetColumn((UIElement)sender);
+                double panelW = ((FrameworkElement)sender).ActualWidth;
+                double panelH = ((FrameworkElement)sender).ActualHeight;
+
+                var items = root.Children.Cast<UIElement>().Where(i => Grid.GetRow(i)    == row && 
+                                                                       Grid.GetColumn(i) == col &&
+                                                                       i != (UIElement)sender &&
+                                                                       i is Grid);
+                Grid view = (Grid)items.ElementAt(0);
+                debug_cmp_txt.Text = view.Name;
+                
+                
+                var svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_xy = (ScrollViewer)svs.ElementAt(0);
+                var cont = sv_xy.Content;
+                if (cont == null)    return;
+                if (!(cont is Grid)) return;
+                Grid xypanel = (Grid)cont;
+                
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_zx = (ScrollViewer)svs.ElementAt(0);
+                cont = sv_zx.Content;
+                if (cont == null) return;
+                if (!(cont is Grid)) return;
+                Grid zxpanel = (Grid)cont;
+
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 2 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_yz = (ScrollViewer)svs.ElementAt(0);
+                cont = sv_yz.Content;
+                if (cont == null) return;
+                if (!(cont is Grid)) return;
+                Grid yzpanel = (Grid)cont;
+
+                double inner_grid_aspect_ratio = (18.0 + (double)imageW + 3.0 + (double)imageZ) / (18.0 + (double)imageH + 3.0 + (double)imageZ);
+                double outer_panel_aspect_ratio = panelW / panelH;
+
+                if (inner_grid_aspect_ratio > outer_panel_aspect_ratio)
+                {
+                    double magxy = xypanel.ActualWidth / (sv_xy.ActualWidth - 18.0);
+                    double magzx = zxpanel.ActualWidth / (sv_zx.ActualWidth - 18.0);
+                    double magyz = yzpanel.ActualWidth / sv_yz.ActualWidth;
+                    double sv_aspect_xy = (sv_xy.ActualHeight - 18.0) / (sv_xy.ActualWidth - 18.0);
+                    double sv_aspect_zx = sv_zx.ActualHeight / (sv_zx.ActualWidth - 18.0);
+                    double sv_aspect_yz = (sv_yz.ActualHeight - 18.0) / sv_yz.ActualWidth;
+                    double im_aspect_xy = (double)imageH / (double)imageW;
+                    double im_aspect_zx = (double)imageZ / (double)imageW;
+                    double im_aspect_yz = (double)imageH / (double)imageZ;
+                    double w = (panelW - 3.0 - 18.0) * (double)imageW / (double)(imageW + imageZ) - 12.0/*margin*/;
+                    w = (w > sv_xy.MinWidth) ? w : sv_xy.MinWidth;
+                    sv_xy.Width    = w + 18.0;
+                    sv_xy.Height   = w * sv_aspect_xy + 18.0;
+                    xypanel.Width  = w * magxy;
+                    xypanel.Height = w * magxy * im_aspect_xy;
+
+                    debug_txt.Text = (w + 18.0).ToString() + "  " + sv_xy.ActualWidth + "  " + xypanel.ActualWidth;
+
+                    sv_zx.Width = w + 18.0;
+                    sv_zx.Height = w * sv_aspect_zx;
+                    zxpanel.Width = w * magzx;
+                    zxpanel.Height = w * magzx * im_aspect_zx;
+
+                    sv_yz.Width = w * sv_aspect_zx;
+                    sv_yz.Height = w * sv_aspect_xy + 18.0;
+                    yzpanel.Width = w * sv_aspect_zx * magyz;
+                    yzpanel.Height = w * sv_aspect_zx * magyz * im_aspect_yz;
+
+                }
+
+                
+                
+                //root.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+                //ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+                //ortho_grid_src.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+                //ortho_grid_dst.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+            }
+        }
 
     }
 }
