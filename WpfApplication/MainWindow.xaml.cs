@@ -1548,6 +1548,8 @@ namespace WpfApplication1
 
                 if (inner_grid_aspect_ratio > outer_panel_aspect_ratio)
                 {
+                    /*mag(倍率)、sv_aspectはメンバ変数とするべき（誤差が出る）*/
+                    
                     double magxy = xypanel.ActualWidth / (sv_xy.ActualWidth - 18.0);
                     double magzx = zxpanel.ActualWidth / (sv_zx.ActualWidth - 18.0);
                     double magyz = yzpanel.ActualWidth / sv_yz.ActualWidth;
@@ -1559,12 +1561,10 @@ namespace WpfApplication1
                     double im_aspect_yz = (double)imageH / (double)imageZ;
                     double w = (panelW - 3.0 - 18.0) * (double)imageW / (double)(imageW + imageZ) - 12.0/*margin*/;
                     w = (w > sv_xy.MinWidth) ? w : sv_xy.MinWidth;
-                    sv_xy.Width    = w + 18.0;
-                    sv_xy.Height   = w * sv_aspect_xy + 18.0;
-                    xypanel.Width  = w * magxy;
+                    sv_xy.Width = w + 18.0;
+                    sv_xy.Height = w * sv_aspect_xy + 18.0;
+                    xypanel.Width = w * magxy;
                     xypanel.Height = w * magxy * im_aspect_xy;
-
-                    debug_txt.Text = (w + 18.0).ToString() + "  " + sv_xy.ActualWidth + "  " + xypanel.ActualWidth;
 
                     sv_zx.Width = w + 18.0;
                     sv_zx.Height = w * sv_aspect_zx;
