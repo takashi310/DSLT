@@ -594,6 +594,8 @@ namespace WpfApplication1
             dst_line_zx_z.StrokeThickness = 1;
             dst_line_zx_z.Visibility = Visibility.Visible;
 
+
+            ortho_view.UpdateLayout();
             viewSizeChange(view_src);
             viewSizeChange(view_dst);
 
@@ -1691,52 +1693,65 @@ namespace WpfApplication1
             y = null;
             z = null;
 
-            tmpx = e.GetPosition(ortho_xy).X / ortho_xy.ActualWidth;
-            tmpy = e.GetPosition(ortho_xy).Y / ortho_xy.ActualHeight;
-            if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+            if (src_sv_xy.IsMouseOver)
             {
-                x = tmpx;
-                y = tmpy;
+                tmpx = e.GetPosition(ortho_xy).X / ortho_xy.ActualWidth;
+                tmpy = e.GetPosition(ortho_xy).Y / ortho_xy.ActualHeight;
+                if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+                {
+                    x = tmpx;
+                    y = tmpy;
+                }
             }
-
-            tmpx = e.GetPosition(ortho_zx).X / ortho_zx.ActualWidth;
-            tmpz = e.GetPosition(ortho_zx).Y / ortho_zx.ActualHeight;
-            if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+            else if (src_sv_zx.IsMouseOver)
             {
-                x = tmpx;
-                z = tmpz;
+                tmpx = e.GetPosition(ortho_zx).X / ortho_zx.ActualWidth;
+                tmpz = e.GetPosition(ortho_zx).Y / ortho_zx.ActualHeight;
+                if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+                {
+                    x = tmpx;
+                    z = tmpz;
+                }
             }
-
-            tmpz = e.GetPosition(ortho_yz).X / ortho_yz.ActualWidth;
-            tmpy = e.GetPosition(ortho_yz).Y / ortho_yz.ActualHeight;
-            if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+            else if (src_sv_yz.IsMouseOver)
             {
-                z = tmpz;
-                y = tmpy;
+                tmpz = e.GetPosition(ortho_yz).X / ortho_yz.ActualWidth;
+                tmpy = e.GetPosition(ortho_yz).Y / ortho_yz.ActualHeight;
+                if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+                {
+                    z = tmpz;
+                    y = tmpy;
+                }
             }
-
-            tmpx = e.GetPosition(dst_ortho_xy).X / dst_ortho_xy.ActualWidth;
-            tmpy = e.GetPosition(dst_ortho_xy).Y / dst_ortho_xy.ActualHeight;
-            if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+            else if (dst_sv_xy.IsMouseOver)
             {
-                x = tmpx;
-                y = tmpy;
+                tmpx = e.GetPosition(dst_ortho_xy).X / dst_ortho_xy.ActualWidth;
+                tmpy = e.GetPosition(dst_ortho_xy).Y / dst_ortho_xy.ActualHeight;
+                if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+                {
+                    x = tmpx;
+                    y = tmpy;
+                }
             }
-
-            tmpx = e.GetPosition(dst_ortho_zx).X / dst_ortho_zx.ActualWidth;
-            tmpz = e.GetPosition(dst_ortho_zx).Y / dst_ortho_zx.ActualHeight;
-            if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+            else if (dst_sv_zx.IsMouseOver)
             {
-                x = tmpx;
-                z = tmpz;
+                tmpx = e.GetPosition(dst_ortho_zx).X / dst_ortho_zx.ActualWidth;
+                tmpz = e.GetPosition(dst_ortho_zx).Y / dst_ortho_zx.ActualHeight;
+                if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+                {
+                    x = tmpx;
+                    z = tmpz;
+                }
             }
-
-            tmpz = e.GetPosition(dst_ortho_yz).X / dst_ortho_yz.ActualWidth;
-            tmpy = e.GetPosition(dst_ortho_yz).Y / dst_ortho_yz.ActualHeight;
-            if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+            else if (dst_sv_yz.IsMouseOver)
             {
-                z = tmpz;
-                y = tmpy;
+                tmpz = e.GetPosition(dst_ortho_yz).X / dst_ortho_yz.ActualWidth;
+                tmpy = e.GetPosition(dst_ortho_yz).Y / dst_ortho_yz.ActualHeight;
+                if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+                {
+                    z = tmpz;
+                    y = tmpy;
+                }
             }
 
             if (x == null) x = X_slider.Value / imageW;
@@ -1790,14 +1805,6 @@ namespace WpfApplication1
 
             viewSizeChange(view_src);
             viewSizeChange(view_dst);
-
-            src_sv_xy.UpdateLayout();
-            src_sv_yz.UpdateLayout();
-            src_sv_zx.UpdateLayout();
-
-            dst_sv_xy.UpdateLayout();
-            dst_sv_yz.UpdateLayout();
-            dst_sv_zx.UpdateLayout();
 
             src_sv_xy.ScrollToHorizontalOffset(src_x);
             src_sv_xy.ScrollToVerticalOffset(src_y);
