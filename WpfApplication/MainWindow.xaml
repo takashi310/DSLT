@@ -1207,6 +1207,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <Grid x:Name="view_src" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" SizeChanged="view_SizeChanged"/>
             <Grid x:Name="ortho_grid_src" Grid.Column="0" Height="Auto" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" SizeChanged="ortho_grid_SizeChanged">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -1214,19 +1215,33 @@
                     <ColumnDefinition Width="0.1667*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="0.1667*"/>
-                    <RowDefinition Height="3"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="0.1667*"/>
                 </Grid.RowDefinitions>
-                <Image x:Name="ortho_xy" Stretch="Uniform" Grid.Column="0" Grid.Row="2" SizeChanged="ortho_xy_SizeChanged" MouseDown="ortho_xy_MouseAction" MouseMove="ortho_xy_MouseAction"/>
-                <Line x:Name="line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="2" MouseDown="line_xy_MouseAction" MouseMove="line_xy_MouseAction"/>
-                <Line x:Name="line_xy_y" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="2" MouseDown="line_xy_MouseAction" MouseMove="line_xy_MouseAction"/>
-                <Image x:Name="ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="ortho_zx_SizeChanged" MouseDown="ortho_zx_MouseAction" MouseMove="ortho_zx_MouseAction"/>
-                <Line x:Name="line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_zx_MouseAction" MouseMove="line_zx_MouseAction"/>
-                <Line x:Name="line_zx_x" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_zx_MouseAction" MouseMove="line_zx_MouseAction"/>
-                <Image x:Name="ortho_yz" Stretch="Uniform" Grid.Column="2" Grid.Row="2" SizeChanged="ortho_yz_SizeChanged" MouseDown="ortho_yz_MouseAction" MouseMove="ortho_yz_MouseAction"/>
-                <Line x:Name="line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="2" Grid.Row="2" MouseDown="line_yz_MouseAction" MouseMove="line_yz_MouseAction"/>
-                <Line x:Name="line_yz_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="2" Grid.Row="2" MouseDown="line_yz_MouseAction" MouseMove="line_yz_MouseAction"/>
+                <ScrollViewer x:Name="src_sv_xy" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
+                        <Image x:Name="ortho_xy" Stretch="Uniform"  Grid.Column="0" Grid.Row="0" SizeChanged="ortho_xy_SizeChanged"  MouseDown="ortho_xy_MouseAction"   MouseMove="ortho_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_xy_MouseAction"  MouseMove="line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_xy_y" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_xy_MouseAction"  MouseMove="line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                    </Grid>
+                </ScrollViewer>
+
+                <ScrollViewer x:Name="src_sv_zx" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
+                        <Image x:Name="ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="ortho_zx_SizeChanged"  MouseDown="ortho_zx_MouseAction"  MouseMove="ortho_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_zx_MouseAction" MouseMove="line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_zx_x" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_zx_MouseAction" MouseMove="line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                    </Grid>
+                </ScrollViewer>
+
+                <ScrollViewer x:Name="src_sv_yz" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center" >
+                        <Image x:Name="ortho_yz" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="ortho_yz_SizeChanged"  MouseDown="ortho_yz_MouseAction"  MouseMove="ortho_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_yz_MouseAction" MouseMove="line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="line_yz_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_yz_MouseAction" MouseMove="line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                    </Grid>
+                </ScrollViewer>
             </Grid>
 
             <GridSplitter Grid.Column="1" Grid.RowSpan="1" Width="2" VerticalAlignment="Stretch" HorizontalAlignment="Center" ShowsPreview="True">
@@ -1245,31 +1260,31 @@
                     <ColumnDefinition Width="0.1667*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="0.1667*"/>
-                    <RowDefinition Height="3"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="3"/>
+                    <RowDefinition Height="0.1667*"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" FlowDirection="RightToLeft" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40">
-                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" FlowDirection="LeftToRight">
-                        <Image x:Name="dst_ortho_xy" Stretch="Uniform"  Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_xy_SizeChanged"  MouseDown="ortho_xy_MouseAction"  MouseMove="ortho_xy_MouseAction"/>
-                        <Line x:Name="dst_line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_xy_MouseAction"  MouseMove="dst_line_xy_MouseAction"/>
-                        <Line x:Name="dst_line_xy_y" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_xy_MouseAction"  MouseMove="dst_line_xy_MouseAction"/>
+                <ScrollViewer x:Name="dst_sv_xy" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
+                        <Image x:Name="dst_ortho_xy" Stretch="Uniform"  Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_xy_SizeChanged"  MouseDown="ortho_xy_MouseAction"   MouseMove="ortho_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_xy_MouseAction"  MouseMove="dst_line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_xy_y" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_xy_MouseAction"  MouseMove="dst_line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" FlowDirection="RightToLeft" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40">
-                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" FlowDirection="LeftToRight">
-                        <Image x:Name="dst_ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_zx_SizeChanged"  MouseDown="ortho_zx_MouseAction"  MouseMove="ortho_zx_MouseAction"/>
-                        <Line x:Name="dst_line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_zx_MouseAction" MouseMove="dst_line_zx_MouseAction"/>
-                        <Line x:Name="dst_line_zx_x" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_zx_MouseAction" MouseMove="dst_line_zx_MouseAction"/>
+                <ScrollViewer x:Name="dst_sv_zx" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
+                        <Image x:Name="dst_ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_zx_SizeChanged"  MouseDown="ortho_zx_MouseAction"  MouseMove="ortho_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_zx_MouseAction" MouseMove="dst_line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_zx_x" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_zx_MouseAction" MouseMove="dst_line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" FlowDirection="LeftToRight" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40">
-                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" >
-                        <Image x:Name="dst_ortho_yz" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_yz_SizeChanged"  MouseDown="ortho_yz_MouseAction"  MouseMove="ortho_yz_MouseAction"/>
-                        <Line x:Name="dst_line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_yz_MouseAction" MouseMove="dst_line_yz_MouseAction"/>
-                        <Line x:Name="dst_line_yz_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_yz_MouseAction" MouseMove="dst_line_yz_MouseAction"/>
+                <ScrollViewer x:Name="dst_sv_yz" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                    <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center" >
+                        <Image x:Name="dst_ortho_yz" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_yz_SizeChanged"  MouseDown="ortho_yz_MouseAction"  MouseMove="ortho_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_yz_MouseAction" MouseMove="dst_line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
+                        <Line x:Name="dst_line_yz_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_yz_MouseAction" MouseMove="dst_line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                     </Grid>
                 </ScrollViewer>
             </Grid>

@@ -745,7 +745,42 @@
          </Trigger>
       </Style.Triggers>
    </Style>
-   <Style x:Key="LeftScrollViewer" TargetType="{x:Type ScrollViewer}">
+    <Style x:Key="LeftScrollViewer" TargetType="{x:Type ScrollViewer}">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <ScrollContentPresenter Grid.Column="1"/>
+                        <ScrollBar
+                     Name="PART_VerticalScrollBar"
+                     Maximum="{TemplateBinding ScrollableHeight}"
+                     Value="{TemplateBinding VerticalOffset}"
+                     ViewportSize="{TemplateBinding ViewportHeight}"
+                     Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                        <ScrollBar
+                     Name="PART_HorizontalScrollBar"
+                     Grid.Column="1"
+                     Grid.Row="1"
+                     Maximum="{TemplateBinding ScrollableWidth}"
+                     Orientation="Horizontal"
+                     Value="{TemplateBinding HorizontalOffset}"
+                     ViewportSize="{TemplateBinding ViewportWidth}"
+                     Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="TopLeftScrollViewer" TargetType="{x:Type ScrollViewer}">
       <Setter Property="OverridesDefaultStyle" Value="True"/>
       <Setter Property="Template">
          <Setter.Value>
@@ -756,12 +791,13 @@
                      <ColumnDefinition/>
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
-                     <RowDefinition/>
                      <RowDefinition Height="Auto"/>
+                     <RowDefinition/>
                   </Grid.RowDefinitions>
-                  <ScrollContentPresenter Grid.Column="1"/>
+                     <ScrollContentPresenter Grid.Column="1" Grid.Row="1"/>
                   <ScrollBar
                      Name="PART_VerticalScrollBar"
+                     Grid.Row="1"
                      Maximum="{TemplateBinding ScrollableHeight}"
                      Value="{TemplateBinding VerticalOffset}"
                      ViewportSize="{TemplateBinding ViewportHeight}"
@@ -769,7 +805,6 @@
                   <ScrollBar
                      Name="PART_HorizontalScrollBar"
                      Grid.Column="1"
-                     Grid.Row="1"
                      Maximum="{TemplateBinding ScrollableWidth}"
                      Orientation="Horizontal"
                      Value="{TemplateBinding HorizontalOffset}"
@@ -780,7 +815,42 @@
          </Setter.Value>
       </Setter>
    </Style>
-   <!-- SimpleStyles: Button -->
+   <Style x:Key="TopScrollViewer" TargetType="{x:Type ScrollViewer}">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ScrollContentPresenter Grid.Row="1"/>
+                        <ScrollBar
+                     Name="PART_VerticalScrollBar"
+                     Grid.Row="1"
+                     Grid.Column="1"
+                     Maximum="{TemplateBinding ScrollableHeight}"
+                     Value="{TemplateBinding VerticalOffset}"
+                     ViewportSize="{TemplateBinding ViewportHeight}"
+                     Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                        <ScrollBar
+                     Name="PART_HorizontalScrollBar"
+                     Maximum="{TemplateBinding ScrollableWidth}"
+                     Orientation="Horizontal"
+                     Value="{TemplateBinding HorizontalOffset}"
+                     ViewportSize="{TemplateBinding ViewportWidth}"
+                     Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- SimpleStyles: Button -->
    <Style TargetType="{x:Type Button}">
       <Setter Property="SnapsToDevicePixels" Value="true"/>
       <Setter Property="OverridesDefaultStyle" Value="true"/>

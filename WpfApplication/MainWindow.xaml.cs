@@ -29,6 +29,16 @@ namespace WpfApplication1
         private SubWindow sbw = new SubWindow();
         private Window1 win1 = new Window1();
 
+        private double view_ratioW = -1;
+        private double view_ratioH = -1;
+        private double view_ratioD = -1;
+
+        private double sv_im_ratioW = -1;
+        private double sv_im_ratioH = -1;
+        private double sv_im_ratioD = -1;
+
+        private int im_mag_lv = 0;
+
         ListBoxItem dragItem;
         Point dragStartPos;
         DragAdorner dragGhost;
@@ -368,8 +378,8 @@ namespace WpfApplication1
             updateImgXY();
             if (line_yz_z != null && line_zx_z != null && dst_line_yz_z != null && dst_line_zx_z != null)
             {
-                line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)ortho_yz.ActualWidth;
-                line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)ortho_yz.ActualWidth;
+                line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_yz.ActualWidth;
+                line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_yz.ActualWidth;
                 line_yz_z.Y1 = 0;
                 line_yz_z.Y2 = ortho_yz.ActualHeight;
 
@@ -378,8 +388,8 @@ namespace WpfApplication1
                 line_zx_z.Y1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
                 line_zx_z.Y2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
 
-                dst_line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)dst_ortho_yz.ActualWidth;
-                dst_line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)dst_ortho_yz.ActualWidth;
+                dst_line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_yz.ActualWidth;
+                dst_line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_yz.ActualWidth;
                 dst_line_yz_z.Y1 = 0;
                 dst_line_yz_z.Y2 = dst_ortho_yz.ActualHeight;
 
@@ -455,11 +465,6 @@ namespace WpfApplication1
             H_halo_slider.IsEnabled = xy_max > 1 ? true : false;
             H_halo_txt.IsEnabled = xy_max > 1 ? true : false;
 
-			ortho_grid_src.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-			ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-			ortho_grid_src.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
-            ortho_grid_dst.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
-
 			ch_slider.Maximum = c1.getChannelNum() > 1 ? c1.getChannelNum() - 1 : 1;
             ch_slider.Value = 0;
             ch_slider.IsEnabled = c1.getChannelNum() > 1 ? true : false;
@@ -489,89 +494,108 @@ namespace WpfApplication1
 			c1.setSegVisibility((bool)SG_cb.IsChecked.Value);
             c1.setCroppingParams(H_crop_cb.IsChecked.Value, H_crop_hmap_cb.IsChecked.Value, (int)H_upper_slider.Value, (int)H_lower_slider.Value, (int)H_halo_slider.Value);
 
-			line_xy_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_xy.ActualWidth;
-			line_xy_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_xy.ActualWidth;
-			line_xy_x.Y1 = 0;
-			line_xy_x.Y2 = ortho_xy.ActualHeight;
-			line_xy_x.StrokeThickness = 1;
-			line_xy_x.Visibility = Visibility.Visible;
 
-			line_xy_y.X1 = 0;
-			line_xy_y.X2 = ortho_xy.ActualWidth;
-			line_xy_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_xy.ActualHeight;
-			line_xy_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_xy.ActualHeight;
-			line_xy_y.StrokeThickness = 1;
-			line_xy_y.Visibility = Visibility.Visible;
+            view_ratioW = (double)imageW;
+            view_ratioH = (double)imageH;
+            view_ratioD = (double)imageZ;
 
-			line_yz_y.X1 = 0;
-			line_yz_y.X2 = ortho_yz.ActualWidth;
-			line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_yz.ActualHeight;
-			line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_yz.ActualHeight;
-			line_yz_y.StrokeThickness = 1;
-			line_yz_y.Visibility = Visibility.Visible;
+            sv_im_ratioW = 1.0;
+            sv_im_ratioH = 1.0;
+            sv_im_ratioD = 1.0;
 
-            line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)ortho_yz.ActualWidth;
-			line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)ortho_yz.ActualWidth;
-			line_yz_z.Y1 = 0;
-			line_yz_z.Y2 = ortho_yz.ActualHeight;
-			line_yz_z.StrokeThickness = 1;
-			line_yz_z.Visibility = Visibility.Visible;
+            im_mag_lv = 0;
 
-			line_zx_x.Y1 = 0;
-			line_zx_x.Y2 = ortho_zx.ActualHeight;
-			line_zx_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_zx.ActualWidth;
-			line_zx_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_zx.ActualWidth;
-			line_zx_x.StrokeThickness = 1;
-			line_zx_x.Visibility = Visibility.Visible;
+            ortho_grid_src.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+            ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
+            ortho_grid_src.RowDefinitions.ElementAt(2).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+            ortho_grid_dst.RowDefinitions.ElementAt(2).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
 
-			line_zx_z.X1 = 0;
-			line_zx_z.X2 = ortho_zx.ActualWidth;
-			line_zx_z.Y1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
-			line_zx_z.Y2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
-			line_zx_z.StrokeThickness = 1;
-			line_zx_z.Visibility = Visibility.Visible;
+            line_xy_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_xy.ActualWidth;
+            line_xy_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_xy.ActualWidth;
+            line_xy_x.Y1 = 0;
+            line_xy_x.Y2 = ortho_xy.ActualHeight;
+            line_xy_x.StrokeThickness = 1;
+            line_xy_x.Visibility = Visibility.Visible;
 
-			dst_line_xy_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_xy.ActualWidth;
-			dst_line_xy_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_xy.ActualWidth;
-			dst_line_xy_x.Y1 = 0;
-			dst_line_xy_x.Y2 = dst_ortho_xy.ActualHeight;
-			dst_line_xy_x.StrokeThickness = 1;
-			dst_line_xy_x.Visibility = Visibility.Visible;
+            line_xy_y.X1 = 0;
+            line_xy_y.X2 = ortho_xy.ActualWidth;
+            line_xy_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_xy.ActualHeight;
+            line_xy_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_xy.ActualHeight;
+            line_xy_y.StrokeThickness = 1;
+            line_xy_y.Visibility = Visibility.Visible;
 
-			dst_line_xy_y.X1 = 0;
-			dst_line_xy_y.X2 = dst_ortho_xy.ActualWidth;
-			dst_line_xy_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_xy.ActualHeight;
-			dst_line_xy_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_xy.ActualHeight;
-			dst_line_xy_y.StrokeThickness = 1;
-			dst_line_xy_y.Visibility = Visibility.Visible;
+            line_yz_y.X1 = 0;
+            line_yz_y.X2 = ortho_yz.ActualWidth;
+            line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_yz.ActualHeight;
+            line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)ortho_yz.ActualHeight;
+            line_yz_y.StrokeThickness = 1;
+            line_yz_y.Visibility = Visibility.Visible;
 
-			dst_line_yz_y.X1 = 0;
-			dst_line_yz_y.X2 = ortho_yz.ActualWidth;
-			dst_line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
-			dst_line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
-			dst_line_yz_y.StrokeThickness = 1;
-			dst_line_yz_y.Visibility = Visibility.Visible;
+            line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_yz.ActualWidth;
+            line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_yz.ActualWidth;
+            line_yz_z.Y1 = 0;
+            line_yz_z.Y2 = ortho_yz.ActualHeight;
+            line_yz_z.StrokeThickness = 1;
+            line_yz_z.Visibility = Visibility.Visible;
 
-			dst_line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)dst_ortho_yz.ActualWidth;
-			dst_line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)dst_ortho_yz.ActualWidth;
-			dst_line_yz_z.Y1 = 0;
-			dst_line_yz_z.Y2 = ortho_yz.ActualHeight;
-			dst_line_yz_z.StrokeThickness = 1;
-			dst_line_yz_z.Visibility = Visibility.Visible;
+            line_zx_x.Y1 = 0;
+            line_zx_x.Y2 = ortho_zx.ActualHeight;
+            line_zx_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_zx.ActualWidth;
+            line_zx_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)ortho_zx.ActualWidth;
+            line_zx_x.StrokeThickness = 1;
+            line_zx_x.Visibility = Visibility.Visible;
 
-			dst_line_zx_x.Y1 = 0;
-			dst_line_zx_x.Y2 = ortho_zx.ActualHeight;
-			dst_line_zx_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
-			dst_line_zx_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
-			dst_line_zx_x.StrokeThickness = 1;
-			dst_line_zx_x.Visibility = Visibility.Visible;
+            line_zx_z.X1 = 0;
+            line_zx_z.X2 = ortho_zx.ActualWidth;
+            line_zx_z.Y1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
+            line_zx_z.Y2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)ortho_zx.ActualHeight;
+            line_zx_z.StrokeThickness = 1;
+            line_zx_z.Visibility = Visibility.Visible;
 
-			dst_line_zx_z.X1 = 0;
-			dst_line_zx_z.X2 = ortho_zx.ActualWidth;
-			dst_line_zx_z.Y1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_zx.ActualHeight;
-			dst_line_zx_z.Y2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_zx.ActualHeight;
-			dst_line_zx_z.StrokeThickness = 1;
-			dst_line_zx_z.Visibility = Visibility.Visible;
+            dst_line_xy_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_xy.ActualWidth;
+            dst_line_xy_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_xy.ActualWidth;
+            dst_line_xy_x.Y1 = 0;
+            dst_line_xy_x.Y2 = dst_ortho_xy.ActualHeight;
+            dst_line_xy_x.StrokeThickness = 1;
+            dst_line_xy_x.Visibility = Visibility.Visible;
+
+            dst_line_xy_y.X1 = 0;
+            dst_line_xy_y.X2 = dst_ortho_xy.ActualWidth;
+            dst_line_xy_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_xy.ActualHeight;
+            dst_line_xy_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_xy.ActualHeight;
+            dst_line_xy_y.StrokeThickness = 1;
+            dst_line_xy_y.Visibility = Visibility.Visible;
+
+            dst_line_yz_y.X1 = 0;
+            dst_line_yz_y.X2 = ortho_yz.ActualWidth;
+            dst_line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
+            dst_line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)dst_ortho_yz.ActualHeight;
+            dst_line_yz_y.StrokeThickness = 1;
+            dst_line_yz_y.Visibility = Visibility.Visible;
+
+            dst_line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_yz.ActualWidth;
+            dst_line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_yz.ActualWidth;
+            dst_line_yz_z.Y1 = 0;
+            dst_line_yz_z.Y2 = ortho_yz.ActualHeight;
+            dst_line_yz_z.StrokeThickness = 1;
+            dst_line_yz_z.Visibility = Visibility.Visible;
+
+            dst_line_zx_x.Y1 = 0;
+            dst_line_zx_x.Y2 = ortho_zx.ActualHeight;
+            dst_line_zx_x.X1 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
+            dst_line_zx_x.X2 = (double)X_slider.Value / (double)X_slider.Maximum * (double)dst_ortho_zx.ActualWidth;
+            dst_line_zx_x.StrokeThickness = 1;
+            dst_line_zx_x.Visibility = Visibility.Visible;
+
+            dst_line_zx_z.X1 = 0;
+            dst_line_zx_z.X2 = ortho_zx.ActualWidth;
+            dst_line_zx_z.Y1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_zx.ActualHeight;
+            dst_line_zx_z.Y2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)dst_ortho_zx.ActualHeight;
+            dst_line_zx_z.StrokeThickness = 1;
+            dst_line_zx_z.Visibility = Visibility.Visible;
+
+            viewSizeChange(view_src);
+            viewSizeChange(view_dst);
 
 			win1.Hide();
 			win1.graphX.Stretch = Stretch.None;
@@ -647,8 +671,8 @@ namespace WpfApplication1
             line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)((Image)sender).ActualHeight;
             line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)((Image)sender).ActualHeight;
 
-            line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)((Image)sender).ActualWidth;
-            line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)((Image)sender).ActualWidth;
+            line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)((Image)sender).ActualWidth;
+            line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)((Image)sender).ActualWidth;
             line_yz_z.Y1 = 0;
             line_yz_z.Y2 = ((Image)sender).ActualHeight;
         }
@@ -686,8 +710,8 @@ namespace WpfApplication1
             dst_line_yz_y.Y1 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)((Image)sender).ActualHeight;
             dst_line_yz_y.Y2 = (double)Y_slider.Value / (double)Y_slider.Maximum * (double)((Image)sender).ActualHeight;
 
-            dst_line_yz_z.X1 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)((Image)sender).ActualWidth;
-            dst_line_yz_z.X2 = (1.0 - (double)Z_slider.Value / (double)Z_slider.Maximum) * (double)((Image)sender).ActualWidth;
+            dst_line_yz_z.X1 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)((Image)sender).ActualWidth;
+            dst_line_yz_z.X2 = (double)Z_slider.Value / (double)Z_slider.Maximum * (double)((Image)sender).ActualWidth;
             dst_line_yz_z.Y1 = 0;
             dst_line_yz_z.Y2 = ((Image)sender).ActualHeight;
         }
@@ -717,6 +741,7 @@ namespace WpfApplication1
 
         private void line_xy_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 X_slider.Value = (int)(e.GetPosition(ortho_xy).X / ortho_xy.ActualWidth * (double)imageW);
@@ -733,6 +758,7 @@ namespace WpfApplication1
 
         private void line_zx_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 X_slider.Value = (int)(e.GetPosition(ortho_zx).X / ortho_zx.ActualWidth * (double)imageW);
@@ -749,22 +775,24 @@ namespace WpfApplication1
 
         private void line_yz_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
-                Z_slider.Value = (int)((1.0 - e.GetPosition(ortho_yz).X / (ortho_yz).ActualWidth) * (double)imageZ);
+                Z_slider.Value = (int)(e.GetPosition(ortho_yz).X / (ortho_yz).ActualWidth * (double)imageZ);
                 Y_slider.Value = (int)(e.GetPosition(ortho_yz).Y / ortho_yz.ActualHeight * (double)imageH);
             }
             if (e.MiddleButton.Equals(MouseButtonState.Pressed))
             {
                 int x = (int)X_slider.Value;
                 int y = (int)(e.GetPosition(ortho_yz).Y / ortho_yz.ActualHeight * (double)imageH);
-                int z = (int)((1.0 - e.GetPosition(ortho_yz).X / (ortho_yz).ActualWidth) * (double)imageZ);
+                int z = (int)(e.GetPosition(ortho_yz).X / (ortho_yz).ActualWidth * (double)imageZ);
                 segmentSelection(x, y, z);
             }
         }
 
         private void dst_line_xy_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 X_slider.Value = (int)(e.GetPosition(dst_ortho_xy).X / dst_ortho_xy.ActualWidth * (double)imageW);
@@ -781,6 +809,7 @@ namespace WpfApplication1
 
         private void dst_line_zx_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 X_slider.Value = (int)(e.GetPosition(dst_ortho_zx).X / dst_ortho_zx.ActualWidth * (double)imageW);
@@ -797,22 +826,24 @@ namespace WpfApplication1
 
         private void dst_line_yz_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
-                Z_slider.Value = (int)((1.0 - e.GetPosition(dst_ortho_yz).X / (dst_ortho_yz).ActualWidth) * (double)imageZ);
+                Z_slider.Value = (int)(e.GetPosition(dst_ortho_yz).X / (dst_ortho_yz).ActualWidth * (double)imageZ);
                 Y_slider.Value = (int)(e.GetPosition(dst_ortho_yz).Y / dst_ortho_yz.ActualHeight * (double)imageH);
             }
             if (e.MiddleButton.Equals(MouseButtonState.Pressed))
             {
                 int x = (int)X_slider.Value;
                 int y = (int)(e.GetPosition(dst_ortho_yz).Y / dst_ortho_yz.ActualHeight * (double)imageH);
-                int z = (int)((1.0 - e.GetPosition(dst_ortho_yz).X / (dst_ortho_yz).ActualWidth) * (double)imageZ);
+                int z = (int)(e.GetPosition(dst_ortho_yz).X / (dst_ortho_yz).ActualWidth * (double)imageZ);
                 segmentSelection(x, y, z);
             }
         }
 
         private void ortho_xy_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 X_slider.Value = (int)(e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth * (double)imageW);
@@ -829,6 +860,7 @@ namespace WpfApplication1
 
         private void ortho_zx_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 Z_slider.Value = (int)(e.GetPosition(((Image)sender)).Y / ((Image)sender).ActualHeight * (double)imageZ);
@@ -845,16 +877,17 @@ namespace WpfApplication1
        
         private void ortho_yz_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
             if (e.LeftButton.Equals(MouseButtonState.Pressed))
             {
                 Y_slider.Value = (int)(e.GetPosition(((Image)sender)).Y / ((Image)sender).ActualHeight * (double)imageH);
-                Z_slider.Value = (int)((1.0 - e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth) * (double)imageZ);
+                Z_slider.Value = (int)(e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth * (double)imageZ);
             }
             if (e.MiddleButton.Equals(MouseButtonState.Pressed))
             {
                 int x = (int)X_slider.Value;
                 int y = (int)(e.GetPosition(((Image)sender)).Y / ((Image)sender).ActualHeight * (double)imageH);
-                int z = (int)((1.0 - e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth) * (double)imageZ);
+                int z = (int)(e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth * (double)imageZ);
                 segmentSelection(x, y, z);
             }
         }
@@ -1489,8 +1522,10 @@ namespace WpfApplication1
 
         private void MenuItem_Reset_Click(object sender, RoutedEventArgs e)
         {
-            ortho_view.ColumnDefinitions.ElementAt(0).Width = new GridLength(1.0, GridUnitType.Star);
-            ortho_view.ColumnDefinitions.ElementAt(2).Width = new GridLength(1.0, GridUnitType.Star);
+            //ortho_view.ColumnDefinitions.ElementAt(0).Width = new GridLength(1.0, GridUnitType.Star);
+            //ortho_view.ColumnDefinitions.ElementAt(2).Width = new GridLength(1.0, GridUnitType.Star);
+            debug_cmp_txt.Text = (dst_sv_xy.ViewportWidth / src_sv_xy.ViewportWidth).ToString();
+            debug_txt.Text = (dst_ortho_xy.ActualWidth / ortho_xy.ActualWidth).ToString();
         }
 
         private void ortho_view_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1500,34 +1535,39 @@ namespace WpfApplication1
 
         private void view_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (imageW < 0 || imageH < 0 || imageZ < 0) return;
+            viewSizeChange(sender);
+        }
 
-            var parent = LogicalTreeHelper.GetParent((DependencyObject)sender);
+        private void viewSizeChange(object target)
+        {
+            if (imageW <= 0 || imageH <= 0 || imageZ <= 0) return;
+
+            var parent = LogicalTreeHelper.GetParent((DependencyObject)target);
             if (parent is Grid)
             {
                 Grid root = (Grid)parent;
-                int row = Grid.GetRow((UIElement)sender);
-                int col = Grid.GetColumn((UIElement)sender);
-                double panelW = ((FrameworkElement)sender).ActualWidth;
-                double panelH = ((FrameworkElement)sender).ActualHeight;
+                int row = Grid.GetRow((UIElement)target);
+                int col = Grid.GetColumn((UIElement)target);
+                double panelW = ((FrameworkElement)target).ActualWidth;
+                double panelH = ((FrameworkElement)target).ActualHeight;
 
-                var items = root.Children.Cast<UIElement>().Where(i => Grid.GetRow(i)    == row && 
+                var items = root.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == row &&
                                                                        Grid.GetColumn(i) == col &&
-                                                                       i != (UIElement)sender &&
+                                                                       i != (UIElement)target &&
                                                                        i is Grid);
+                if (items.Count() == 0) return;
                 Grid view = (Grid)items.ElementAt(0);
-                debug_cmp_txt.Text = view.Name;
                 
-                
-                var svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+
+                var svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
                 if (svs.Count() == 0) return;
                 ScrollViewer sv_xy = (ScrollViewer)svs.ElementAt(0);
                 var cont = sv_xy.Content;
-                if (cont == null)    return;
+                if (cont == null) return;
                 if (!(cont is Grid)) return;
                 Grid xypanel = (Grid)cont;
-                
-                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
                 if (svs.Count() == 0) return;
                 ScrollViewer sv_zx = (ScrollViewer)svs.ElementAt(0);
                 cont = sv_zx.Content;
@@ -1535,7 +1575,7 @@ namespace WpfApplication1
                 if (!(cont is Grid)) return;
                 Grid zxpanel = (Grid)cont;
 
-                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 2 && i is ScrollViewer);
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 2 && i is ScrollViewer);
                 if (svs.Count() == 0) return;
                 ScrollViewer sv_yz = (ScrollViewer)svs.ElementAt(0);
                 cont = sv_yz.Content;
@@ -1543,48 +1583,331 @@ namespace WpfApplication1
                 if (!(cont is Grid)) return;
                 Grid yzpanel = (Grid)cont;
 
+                if (xypanel.ActualWidth <= 0.0 || yzpanel.ActualHeight <= 0.0 || zxpanel.ActualHeight <= 0.0) return;
+
                 double inner_grid_aspect_ratio = (18.0 + (double)imageW + 3.0 + (double)imageZ) / (18.0 + (double)imageH + 3.0 + (double)imageZ);
                 double outer_panel_aspect_ratio = panelW / panelH;
 
+                double offsetx = sv_xy.HorizontalOffset / xypanel.ActualWidth;
+                double offsety = sv_yz.VerticalOffset / yzpanel.ActualHeight;
+                double offsetz = sv_zx.VerticalOffset / zxpanel.ActualHeight;
+
+                double w, h, d;
                 if (inner_grid_aspect_ratio > outer_panel_aspect_ratio)
                 {
-                    /*mag(倍率)、sv_aspectはメンバ変数とするべき（誤差が出る）*/
-                    
-                    double magxy = xypanel.ActualWidth / (sv_xy.ActualWidth - 18.0);
-                    double magzx = zxpanel.ActualWidth / (sv_zx.ActualWidth - 18.0);
-                    double magyz = yzpanel.ActualWidth / sv_yz.ActualWidth;
-                    double sv_aspect_xy = (sv_xy.ActualHeight - 18.0) / (sv_xy.ActualWidth - 18.0);
-                    double sv_aspect_zx = sv_zx.ActualHeight / (sv_zx.ActualWidth - 18.0);
-                    double sv_aspect_yz = (sv_yz.ActualHeight - 18.0) / sv_yz.ActualWidth;
-                    double im_aspect_xy = (double)imageH / (double)imageW;
-                    double im_aspect_zx = (double)imageZ / (double)imageW;
-                    double im_aspect_yz = (double)imageH / (double)imageZ;
-                    double w = (panelW - 3.0 - 18.0) * (double)imageW / (double)(imageW + imageZ) - 12.0/*margin*/;
+                    w = (panelW - 3.0 - 18.0) * (double)imageW / (double)(imageW + imageZ) - 12.0/*margin*/;
                     w = (w > sv_xy.MinWidth) ? w : sv_xy.MinWidth;
-                    sv_xy.Width = w + 18.0;
-                    sv_xy.Height = w * sv_aspect_xy + 18.0;
-                    xypanel.Width = w * magxy;
-                    xypanel.Height = w * magxy * im_aspect_xy;
 
-                    sv_zx.Width = w + 18.0;
-                    sv_zx.Height = w * sv_aspect_zx;
-                    zxpanel.Width = w * magzx;
-                    zxpanel.Height = w * magzx * im_aspect_zx;
+                    h = w * (view_ratioH / view_ratioW);
+                    d = w * (view_ratioD / view_ratioW);
+                }
+                else
+                {
+                    h = (panelH - 3.0 - 18.0) * (double)imageH / (double)(imageH + imageZ) - 12.0/*margin*/;
+                    h = (h > sv_xy.MinHeight) ? h : sv_xy.MinHeight;
 
-                    sv_yz.Width = w * sv_aspect_zx;
-                    sv_yz.Height = w * sv_aspect_xy + 18.0;
-                    yzpanel.Width = w * sv_aspect_zx * magyz;
-                    yzpanel.Height = w * sv_aspect_zx * magyz * im_aspect_yz;
-
+                    w = h * (view_ratioW / view_ratioH);
+                    d = h * (view_ratioD / view_ratioH);
                 }
 
-                
-                
-                //root.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-                //ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
-                //ortho_grid_src.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
-                //ortho_grid_dst.RowDefinitions.ElementAt(0).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
+                double im_mag = calcMag(im_mag_lv);
+
+                sv_xy.Width = w + 18.0;
+                sv_xy.Height = h + 18.0;
+                xypanel.Width = w * sv_im_ratioW * im_mag;
+                xypanel.Height = h * sv_im_ratioH * im_mag;
+
+                sv_zx.Width = w + 18.0;
+                sv_zx.Height = d;
+                zxpanel.Width = w * sv_im_ratioW * im_mag;
+                zxpanel.Height = d * sv_im_ratioD * im_mag;
+
+                sv_yz.Width = d;
+                sv_yz.Height = h + 18.0;
+                yzpanel.Width = d * sv_im_ratioD * im_mag;
+                yzpanel.Height = h * sv_im_ratioH * im_mag;
+
+                if (sv_xy == dst_sv_xy)
+                {
+                    debug_cmp_txt.Text = xypanel.ActualWidth.ToString();
+                    debug_txt.Text = (w * sv_im_ratioW * im_mag).ToString();
+                }
+
+                sv_xy.UpdateLayout();
+                sv_yz.UpdateLayout();
+                sv_zx.UpdateLayout();
+
+                sv_xy.ScrollToHorizontalOffset(offsetx * w * sv_im_ratioW * im_mag);
+                sv_xy.ScrollToVerticalOffset(offsety * h * sv_im_ratioH * im_mag);
+                sv_yz.ScrollToHorizontalOffset(offsetz * d * sv_im_ratioD * im_mag);
+                sv_yz.ScrollToVerticalOffset(offsety * h * sv_im_ratioH * im_mag);
+                sv_zx.ScrollToHorizontalOffset(offsetx * w * sv_im_ratioW * im_mag);
+                sv_zx.ScrollToVerticalOffset(offsetz * d * sv_im_ratioD * im_mag);
+
             }
+        }
+
+        private void view_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                im_mag_lv++;
+
+                view_magnification(calcMag(im_mag_lv) / calcMag(im_mag_lv - 1), e);
+            }
+        }
+
+        private void view_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                im_mag_lv--;
+                
+                if (im_mag_lv < 0) im_mag_lv = 0;
+                else view_magnification(calcMag(im_mag_lv) / calcMag(im_mag_lv + 1), e);
+            }
+        }
+
+        private double calcMag(int lv)
+        {
+            if(lv <= 0) return 1.0;
+            
+            int m = lv / 2;
+            int mag_p = 100;
+            
+            mag_p += 50 * ((1 << m) - 1);
+
+            if (lv % 2 == 1) m++;
+            mag_p += 50 * ((1 << m) - 1);
+
+            return (double)mag_p / 100.0;
+        }
+
+        private void view_magnification(double rel_mag, MouseButtonEventArgs e)
+        {
+            double? x, y, z, tmpx, tmpy, tmpz;
+
+            x = null;
+            y = null;
+            z = null;
+
+            tmpx = e.GetPosition(ortho_xy).X / ortho_xy.ActualWidth;
+            tmpy = e.GetPosition(ortho_xy).Y / ortho_xy.ActualHeight;
+            if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+            {
+                x = tmpx;
+                y = tmpy;
+            }
+
+            tmpx = e.GetPosition(ortho_zx).X / ortho_zx.ActualWidth;
+            tmpz = e.GetPosition(ortho_zx).Y / ortho_zx.ActualHeight;
+            if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+            {
+                x = tmpx;
+                z = tmpz;
+            }
+
+            tmpz = e.GetPosition(ortho_yz).X / ortho_yz.ActualWidth;
+            tmpy = e.GetPosition(ortho_yz).Y / ortho_yz.ActualHeight;
+            if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+            {
+                z = tmpz;
+                y = tmpy;
+            }
+
+            tmpx = e.GetPosition(dst_ortho_xy).X / dst_ortho_xy.ActualWidth;
+            tmpy = e.GetPosition(dst_ortho_xy).Y / dst_ortho_xy.ActualHeight;
+            if (tmpx >= 0.0 && tmpy >= 0.0 && tmpx <= 1.0 && tmpy <= 1.0)
+            {
+                x = tmpx;
+                y = tmpy;
+            }
+
+            tmpx = e.GetPosition(dst_ortho_zx).X / dst_ortho_zx.ActualWidth;
+            tmpz = e.GetPosition(dst_ortho_zx).Y / dst_ortho_zx.ActualHeight;
+            if (tmpx >= 0.0 && tmpz >= 0.0 && tmpx <= 1.0 && tmpz <= 1.0)
+            {
+                x = tmpx;
+                z = tmpz;
+            }
+
+            tmpz = e.GetPosition(dst_ortho_yz).X / dst_ortho_yz.ActualWidth;
+            tmpy = e.GetPosition(dst_ortho_yz).Y / dst_ortho_yz.ActualHeight;
+            if (tmpz >= 0.0 && tmpy >= 0.0 && tmpz <= 1.0 && tmpy <= 1.0)
+            {
+                z = tmpz;
+                y = tmpy;
+            }
+
+            if (x == null) x = X_slider.Value / imageW;
+            if (y == null) y = Y_slider.Value / imageH;
+            if (z == null) z = Z_slider.Value / imageZ;
+
+            double src_x = (double)x, src_y = (double)y, src_z = (double)z;
+            double dst_x = (double)x, dst_y = (double)y, dst_z = (double)z;
+
+
+            src_x *= ortho_xy.ActualWidth * rel_mag;
+            src_y *= ortho_yz.ActualHeight * rel_mag;
+            src_z *= ortho_zx.ActualHeight * rel_mag;
+
+            double xmax = ortho_xy.ActualWidth * rel_mag - src_sv_xy.ViewportWidth;
+            double ymax = ortho_yz.ActualHeight * rel_mag - src_sv_yz.ViewportHeight;
+            double zmax = ortho_zx.ActualHeight * rel_mag - src_sv_zx.ViewportHeight;
+
+            src_x -= src_sv_xy.ViewportWidth / 2;
+            if (src_x < 0.0) src_x = 0.0;
+            if (src_x > xmax) src_x = xmax;
+
+            src_y -= src_sv_yz.ViewportHeight / 2;
+            if (src_y < 0.0) src_y = 0.0;
+            if (src_y > ymax) src_y = ymax;
+
+            src_z -= src_sv_zx.ViewportHeight / 2;
+            if (src_z < 0.0) src_z = 0.0;
+            if (src_z > zmax) src_z = zmax;
+
+
+            dst_x *= dst_ortho_xy.ActualWidth * rel_mag;
+            dst_y *= dst_ortho_yz.ActualHeight * rel_mag;
+            dst_z *= dst_ortho_zx.ActualHeight * rel_mag;
+
+            xmax = dst_ortho_xy.ActualWidth * rel_mag - dst_sv_xy.ViewportWidth;
+            ymax = dst_ortho_yz.ActualHeight * rel_mag - dst_sv_yz.ViewportHeight;
+            zmax = dst_ortho_zx.ActualHeight * rel_mag - dst_sv_zx.ViewportHeight;
+
+            dst_x -= dst_sv_xy.ViewportWidth / 2;
+            if (dst_x < 0.0) dst_x = 0.0;
+            if (dst_x > xmax) dst_x = xmax;
+
+            dst_y -= dst_sv_yz.ViewportHeight / 2;
+            if (dst_y < 0.0) dst_y = 0.0;
+            if (dst_y > ymax) dst_y = ymax;
+
+            dst_z -= dst_sv_zx.ViewportHeight / 2;
+            if (dst_z < 0.0) dst_z = 0.0;
+            if (dst_z > zmax) dst_z = zmax;
+
+            viewSizeChange(view_src);
+            viewSizeChange(view_dst);
+
+            src_sv_xy.UpdateLayout();
+            src_sv_yz.UpdateLayout();
+            src_sv_zx.UpdateLayout();
+
+            dst_sv_xy.UpdateLayout();
+            dst_sv_yz.UpdateLayout();
+            dst_sv_zx.UpdateLayout();
+
+            src_sv_xy.ScrollToHorizontalOffset(src_x);
+            src_sv_xy.ScrollToVerticalOffset(src_y);
+            src_sv_yz.ScrollToHorizontalOffset(src_z);
+            src_sv_yz.ScrollToVerticalOffset(src_y);
+            src_sv_zx.ScrollToHorizontalOffset(src_x);
+            src_sv_zx.ScrollToVerticalOffset(src_z);
+
+            dst_sv_xy.ScrollToHorizontalOffset(dst_x);
+            dst_sv_xy.ScrollToVerticalOffset(dst_y);
+            dst_sv_yz.ScrollToHorizontalOffset(dst_z);
+            dst_sv_yz.ScrollToVerticalOffset(dst_y);
+            dst_sv_zx.ScrollToHorizontalOffset(dst_x);
+            dst_sv_zx.ScrollToVerticalOffset(dst_z);
+        }
+
+        private void ScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (imageW <= 0 || imageH <= 0 || imageZ <= 0) return;
+            /*
+            var parent = LogicalTreeHelper.GetParent((DependencyObject)sender);
+            if (parent is Grid)
+            {
+                Grid view = (Grid)parent;
+                debug_cmp_txt.Text = view.Name;
+
+                var svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_xy = (ScrollViewer)svs.ElementAt(0);
+               
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 2 && Grid.GetColumn(i) == 0 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_zx = (ScrollViewer)svs.ElementAt(0);
+                var cont = sv_zx.Content;
+                if (cont == null) return;
+                if (!(cont is Grid)) return;
+                Grid zxpanel = (Grid)cont;
+                
+                svs = view.Children.Cast<UIElement>().Where(i => Grid.GetRow(i) == 0 && Grid.GetColumn(i) == 2 && i is ScrollViewer);
+                if (svs.Count() == 0) return;
+                ScrollViewer sv_yz = (ScrollViewer)svs.ElementAt(0);
+                cont = sv_yz.Content;
+                if (cont == null) return;
+                if (!(cont is Grid)) return;
+                Grid yzpanel = (Grid)cont;
+
+                if ((ScrollViewer)sender == sv_zx)
+                {
+                    sv_yz.ScrollToHorizontalOffset(sv_zx.VerticalOffset);
+                }
+                else if ((ScrollViewer)sender == sv_yz)
+                {
+                    sv_zx.ScrollToVerticalOffset(sv_yz.HorizontalOffset);
+                }
+
+                sv_zx.ScrollToHorizontalOffset(sv_xy.HorizontalOffset);
+                sv_yz.ScrollToVerticalOffset(sv_xy.VerticalOffset);
+            }
+            */
+            if (!((ScrollViewer)sender).IsMouseOver) return;
+
+            if ((ScrollViewer)sender == src_sv_zx)
+            {
+                src_sv_yz.ScrollToHorizontalOffset(src_sv_zx.VerticalOffset);
+                
+                dst_sv_zx.ScrollToVerticalOffset(src_sv_zx.VerticalOffset * (dst_sv_zx.ViewportHeight / src_sv_zx.ViewportHeight));
+                dst_sv_yz.ScrollToHorizontalOffset(src_sv_zx.VerticalOffset * (dst_sv_zx.ViewportHeight / src_sv_zx.ViewportHeight));
+            }
+            else if ((ScrollViewer)sender == src_sv_yz)
+            {
+                src_sv_zx.ScrollToVerticalOffset(src_sv_yz.HorizontalOffset);
+                
+                dst_sv_yz.ScrollToHorizontalOffset(src_sv_yz.HorizontalOffset * (dst_sv_yz.ViewportWidth / src_sv_yz.ViewportWidth));
+                dst_sv_zx.ScrollToVerticalOffset(src_sv_yz.HorizontalOffset * (dst_sv_yz.ViewportWidth / src_sv_yz.ViewportWidth));
+            }
+            else if ((ScrollViewer)sender == src_sv_xy)
+            {
+                src_sv_zx.ScrollToHorizontalOffset(src_sv_xy.HorizontalOffset);
+                src_sv_yz.ScrollToVerticalOffset(src_sv_xy.VerticalOffset);
+                dst_sv_zx.ScrollToHorizontalOffset(src_sv_xy.HorizontalOffset * (dst_sv_xy.ViewportWidth / src_sv_xy.ViewportWidth));
+                dst_sv_yz.ScrollToVerticalOffset(src_sv_xy.VerticalOffset * (dst_sv_xy.ViewportHeight / src_sv_xy.ViewportHeight));
+
+                dst_sv_xy.ScrollToHorizontalOffset(src_sv_xy.HorizontalOffset * (dst_sv_xy.ViewportWidth / src_sv_xy.ViewportWidth));
+                dst_sv_xy.ScrollToVerticalOffset(src_sv_xy.VerticalOffset * (dst_sv_xy.ViewportHeight / src_sv_xy.ViewportHeight));
+            }
+            else if ((ScrollViewer)sender == dst_sv_zx)
+            {
+                dst_sv_yz.ScrollToHorizontalOffset(dst_sv_zx.VerticalOffset);
+                
+                src_sv_zx.ScrollToVerticalOffset(dst_sv_zx.VerticalOffset * (src_sv_zx.ViewportHeight / dst_sv_zx.ViewportHeight));
+                src_sv_yz.ScrollToHorizontalOffset(dst_sv_zx.VerticalOffset * (src_sv_zx.ViewportHeight / dst_sv_zx.ViewportHeight));
+            }
+            else if ((ScrollViewer)sender == dst_sv_yz)
+            {
+                dst_sv_zx.ScrollToVerticalOffset(dst_sv_yz.HorizontalOffset);
+                
+                src_sv_yz.ScrollToHorizontalOffset(dst_sv_yz.HorizontalOffset * (src_sv_yz.ViewportWidth / dst_sv_yz.ViewportWidth));
+                src_sv_zx.ScrollToVerticalOffset(dst_sv_yz.HorizontalOffset * (src_sv_yz.ViewportWidth / dst_sv_yz.ViewportWidth));
+            }
+            else if ((ScrollViewer)sender == dst_sv_xy)
+            {
+                dst_sv_zx.ScrollToHorizontalOffset(dst_sv_xy.HorizontalOffset);
+                dst_sv_yz.ScrollToVerticalOffset(dst_sv_xy.VerticalOffset);
+                src_sv_zx.ScrollToHorizontalOffset(dst_sv_xy.HorizontalOffset * (src_sv_xy.ViewportWidth / dst_sv_xy.ViewportWidth));
+                src_sv_yz.ScrollToVerticalOffset(dst_sv_xy.VerticalOffset * (src_sv_xy.ViewportHeight / dst_sv_xy.ViewportHeight));
+
+                src_sv_xy.ScrollToHorizontalOffset(dst_sv_xy.HorizontalOffset * (src_sv_xy.ViewportWidth / dst_sv_xy.ViewportWidth));
+                src_sv_xy.ScrollToVerticalOffset(dst_sv_xy.VerticalOffset * (src_sv_xy.ViewportHeight / dst_sv_xy.ViewportHeight));
+            }
+           
         }
 
     }

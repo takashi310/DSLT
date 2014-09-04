@@ -5537,9 +5537,9 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 				if(d < 0.0f)d = 0.0f;
 				float v = data[j*imageW*imageH + i*imageW + currentX] * pow(1.0f + d_coefficient * d / imageZ, d_order);
 				v = range_adjustment(v, bc_max, bc_min);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3    ] = (unsigned char)(v * 255);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 1] = (unsigned char)(v * 255);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 2] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3    ] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3 + 1] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3 + 2] = (unsigned char)(v * 255);
 			}
 		}
 	}
@@ -5547,23 +5547,23 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 		for(unsigned int i = 0; i < imageH; i++){
 			for(unsigned int j = 0; j < imageZ; j++){
 				float v = range_adjustment(data[j*imageW*imageH + i*imageW + currentX], bc_max, bc_min);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3    ] = (unsigned char)(v * 255);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 1] = (unsigned char)(v * 255);
-				bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 2] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3    ] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3 + 1] = (unsigned char)(v * 255);
+				bufYZ[i*imageZ*3 + j*3 + 2] = (unsigned char)(v * 255);
 			}
 		}
 	}
 
 	if(hmap_isVisible && !hmapEmpty){
 		for(unsigned int i = 0; i < imageH; i++){
-			int z = (int)((float)(imageZ-1)-(hmap[i*imageW + currentX] + hmap_offset + hmap_range));
+			int z = (int)(hmap[i*imageW + currentX] + hmap_offset + hmap_range);
 			if(z < 0)z = 0;
 			if(z > imageZ-1)z = imageZ-1;
 			bufYZ[i*imageZ*3 + z*3    ] = 0;
 			bufYZ[i*imageZ*3 + z*3 + 1] = 255;
 			bufYZ[i*imageZ*3 + z*3 + 2] = 0;
 
-			z = (int)((float)(imageZ-1)-(hmap[i*imageW + currentX] + hmap_offset));
+			z = (int)(hmap[i*imageW + currentX] + hmap_offset);
 			if(z < 0)z = 0;
 			if(z > imageZ-1)z = imageZ-1;
 			bufYZ[i*imageZ*3 + z*3    ] = 255;
@@ -5589,9 +5589,9 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 							b = b + 50 <= 255 ? b + 50: 255;
 						}
 						else {r /= 3; g /= 3; b /= 3;}
-						bufYZ[i*imageZ*3 + (imageZ-1-j)*3    ] = (unsigned char)r;
-						bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 1] = (unsigned char)g;
-						bufYZ[i*imageZ*3 + (imageZ-1-j)*3 + 2] = (unsigned char)b;
+						bufYZ[i*imageZ*3 + j*3    ] = (unsigned char)r;
+						bufYZ[i*imageZ*3 + j*3 + 1] = (unsigned char)g;
+						bufYZ[i*imageZ*3 + j*3 + 2] = (unsigned char)b;
 					}
 				}
 			}
