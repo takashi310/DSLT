@@ -1524,10 +1524,8 @@ namespace WpfApplication1
 
         private void MenuItem_Reset_Click(object sender, RoutedEventArgs e)
         {
-            //ortho_view.ColumnDefinitions.ElementAt(0).Width = new GridLength(1.0, GridUnitType.Star);
-            //ortho_view.ColumnDefinitions.ElementAt(2).Width = new GridLength(1.0, GridUnitType.Star);
-            debug_cmp_txt.Text = (dst_sv_xy.ViewportWidth / src_sv_xy.ViewportWidth).ToString();
-            debug_txt.Text = (dst_ortho_xy.ActualWidth / ortho_xy.ActualWidth).ToString();
+            ortho_view.ColumnDefinitions.ElementAt(0).Width = new GridLength(1.0, GridUnitType.Star);
+            ortho_view.ColumnDefinitions.ElementAt(2).Width = new GridLength(1.0, GridUnitType.Star);
         }
 
         private void ortho_view_SizeChanged(object sender, SizeChangedEventArgs e)
