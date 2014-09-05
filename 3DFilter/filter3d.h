@@ -77,6 +77,7 @@ namespace TestGPUclass {
 		std::vector<Box3D> *seg_bbox_bk;
 		std::vector< std::vector<cv::Point3i> > *segments_bk;
 		int *segdata_bk;
+		std::vector<int> *selected_segment_bk;
 
 		bool crop_isEnable;
 		bool crop_useHmap;

@@ -78,6 +78,7 @@ Filter3D::Filter3D()
 	segments = NULL;
 	invalid_segments = NULL;
 	selected_segment = NULL;
+	selected_segment_bk = NULL;
 
 	seg_colors_bk = NULL;
 	seg_bbox_bk = NULL;
@@ -146,6 +147,8 @@ void Filter3D::clear()
 		clear2DVector(segments_bk);
 		SAFE_DELETE(segments_bk);
 		SAFE_DELETE_ARRAY(segdata_bk);
+		if(selected_segment_bk != NULL)std::vector<int>().swap(*selected_segment_bk);
+		SAFE_DELETE(selected_segment_bk);
 
 		SAFE_DELETE_ARRAY(graph_tmpX);
 		SAFE_DELETE_ARRAY(graph_tmpY);
@@ -277,6 +280,7 @@ bool Filter3D::set3DImage_MultiTIFF(const char filename[], int channel, int z_sc
 		seg_bbox_bk = new vector<Box3D>;
 		segments_bk = new vector< vector<Point3i> >;
 		segdata_bk = new int[imageW*imageH*depth];
+		selected_segment_bk = new vector<int>; 
 	}
 	catch(std::bad_alloc){
 		printf("set3DImage_MultiTIFF: BAD ALLOC Exception1\n");
@@ -4394,6 +4398,8 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 	delete [] dsadth;
 	delete [] argmin_lati;
 	checkCudaErrors( cudaFree(d_Seg) );
+
+	saveBackupSegmentsData();
 }
 
 void Filter3D::saveRGBimageSeries(const char *fname, float bc_max, float bc_min)
@@ -6425,6 +6431,8 @@ void Filter3D::cropSegments()
 	if(segments == NULL || seg_bbox == NULL || segdata == NULL)return;
 	if(segments->empty() || seg_bbox->empty())return;
 
+	saveBackupSegmentsData();
+
 	if(crop_isEnable){
 		/*
 		for(int z = 0; z < imageZ; z++){
@@ -6481,6 +6489,8 @@ void Filter3D::joinSelectedSegments()
 	if(selected_segment == NULL)return;
 	if(selected_segment->size() <= 1)return;
 
+	saveBackupSegmentsData();
+
 	std::vector<cv::Point3i> joined;
 	int newId = segments->size();
 	int xmin = imageW, xmax = 0, ymin = imageH, ymax = 0, zmin = imageZ, zmax = 0;
@@ -6527,6 +6537,8 @@ void Filter3D::separateSelectedSegments()
 	if(isEmpty)return;
 	if(selected_segment == NULL)return;
 	if(selected_segment->size() <= 0)return;
+
+	saveBackupSegmentsData();
 
 	float *bound = new float[imageW*imageH*imageZ];
 	float *d_Bound;
@@ -6577,6 +6589,8 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 	if(isEmpty)return;
 	if(selected_segment == NULL)return;
 	if(selected_segment->size() <= 0)return;
+
+	saveBackupSegmentsData();
 
 	int diameter = radius*2 + 1;
 
@@ -6669,6 +6683,8 @@ void Filter3D::erodeSphereSelectedSegments(int radius, bool clamp)
 	if(isEmpty)return;
 	if(selected_segment == NULL)return;
 	if(selected_segment->size() <= 0)return;
+
+	saveBackupSegmentsData();
 
 	int diameter = radius*2 + 1;
 
@@ -6772,6 +6788,8 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	if(isEmpty)return;
 	if(imageW <= 0 || imageH <= 0 || imageZ <= 0)return;
 	if(segments == NULL || seg_bbox == NULL || segdata == NULL)return;
+
+	saveBackupSegmentsData();
 
 	cout << stride << endl;
 	if(stride <= 0.0f)return;
@@ -6887,6 +6905,7 @@ void Filter3D::saveBackupSegmentsData()
 	copy1DVector(seg_colors_bk, seg_colors);
 	copy1DVector(seg_bbox_bk, seg_bbox);
 	copy2DVector(segments_bk, segments);
+	copy1DVector(selected_segment_bk, selected_segment);
 	memcpy(segdata_bk, segdata, imageW*imageH*imageZ*sizeof(int));
 }
 
@@ -6896,8 +6915,8 @@ void Filter3D::loadBackupSegmentsData()
 		copy1DVector(seg_colors, seg_colors_bk);
 		copy1DVector(seg_bbox, seg_bbox_bk);
 		copy2DVector(segments, segments_bk);
+		copy1DVector(selected_segment, selected_segment_bk);
 		memcpy(segdata, segdata_bk, imageW*imageH*imageZ*sizeof(int));
-		deselectSegment();
 	}
 }
 
