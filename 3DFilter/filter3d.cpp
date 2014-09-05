@@ -4265,7 +4265,7 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 		}
 	}
 
-	binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, true, 0, thickness, minInvalidStructureArea*thickness, true, true);
+	binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, true, 0, thickness, (maxC == minC) ? INT_MAX : minInvalidStructureArea*thickness, true, true);
 	curC = minC + interval;
 
 	int loopcount = 1;
@@ -4918,7 +4918,7 @@ void Filter3D::generateHeightMapGPU(int blocksize_xy, int blocksize_z, float th,
 				}
 			}
 			if(z == imageZ){
-				hmap[y*imageW + x] = 0.0f;//(float)(z - 1);
+				hmap[y*imageW + x] = (float)(z - 1);
 			}
 		}
 	}

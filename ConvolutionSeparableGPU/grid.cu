@@ -4,21 +4,23 @@
 #include <helper_functions.h>  // helper for shared functions common to CUDA SDK samples
 #include <helper_cuda.h>       // helper functions for CUDA error checking and initialization
 
-__device__ __constant__ float filter_3x3x3[3][3][3];
-__device__ __constant__ float filter_5x5x5[5][5][5];
+//__device__ __constant__ float filter_5x5x5[5][5][5];
 
 texture<float, 3, cudaReadModeElementType> tex_Volume;
 texture<int, 3, cudaReadModeElementType> tex_VolumeI;
 cudaArray *tex_volumeArray = 0;
+cudaArray *tex_volumeArray2 = 0;
 cudaArray *_surfArray1 = 0;
 cudaArray *_surfArray2 = 0;
-surface<void, cudaSurfaceType3D> _surface1;
-surface<void, cudaSurfaceType3D> _surface2;
+//surface<void, cudaSurfaceType3D> _surface1;
+//surface<void, cudaSurfaceType3D> _surface2;
+int *bufferI = 0;
+float *buffer = 0;
 
 extern "C" __declspec (dllexport) void setSphereFilter3D_Tex3D(int rad)
 {
 	int len = rad*2 + 1;
-
+/*
 	if(rad == 1){
 		float tmp[3][3][3];
 
@@ -49,6 +51,7 @@ extern "C" __declspec (dllexport) void setSphereFilter3D_Tex3D(int rad)
 
 		cudaMemcpyToSymbol(filter_5x5x5, tmp, len* len * len * sizeof(float));
 	}
+*/
 }
 
 __device__ int Get_3D_Index(int x, int y, int z, int DATA_W, int DATA_H)
@@ -276,7 +279,7 @@ extern "C" __declspec (dllexport) void initCuda_Tex3D(const float *h_volume, int
 	*/
 }
 
-__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_1(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -328,12 +331,11 @@ __global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DAT
 	/*
 	*/
 
-	surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
-
+	//surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = max;
 }
 
-__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_2(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -379,11 +381,11 @@ __global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DAT
 	if(z+1.0f <= DATA_D-1.0f && y+1.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f) {tmp = tex3D(tex_Volume, x + 1.0 + 0.5f, y + 1.0 + 0.5f, z + 1.0 + 0.5f); max = (max < tmp) ? tmp : max;}
 	if(z+2.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 2.0 + 0.5f); max = (max < tmp) ? tmp : max;}
 	
-	surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = max;
 }
 
-__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_3(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -520,11 +522,11 @@ __global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DAT
 	if(z+3.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 3.0 + 0.5f); max = (max < tmp) ? tmp : max;}
 	
 	
-	surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = max;
 }
 
-__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_4(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -794,12 +796,12 @@ __global__ void Dilation_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DAT
 	if(z+3.0f <= DATA_D-1.0f && y+2.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f) {tmp = tex3D(tex_Volume, x + 1.0 + 0.5f, y + 2.0 + 0.5f, z + 3.0 + 0.5f); max = (max < tmp) ? tmp : max;}
 	if(z+4.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 4.0 + 0.5f); max = (max < tmp) ? tmp : max;}
 	
-	surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(max, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = max;
 }
 
 
-__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_1(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -820,11 +822,11 @@ __global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA
 	if(z+1.0f <= DATA_D-1.0f)	{tmp = tex3D(tex_Volume, x + 0.0f + 0.5f, y + 0.0f + 0.5f, z + 1.0f + 0.5f); min = (min > tmp) ? tmp : min;}
 	
 	
-	surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-	
+	//surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = min;
 }
 
-__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_2(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -870,11 +872,11 @@ __global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA
 	if(z+1.0f <= DATA_D-1.0f && y+1.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f) {tmp = tex3D(tex_Volume, x + 1.0 + 0.5f, y + 1.0 + 0.5f, z + 1.0 + 0.5f); min = (min > tmp) ? tmp : min;}
 	if(z+2.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 2.0 + 0.5f); min = (min > tmp) ? tmp : min;}
 	
-	surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = min;
 }
 
-__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_3(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1011,11 +1013,11 @@ __global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA
 	if(z+3.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 3.0 + 0.5f); min = (min > tmp) ? tmp : min;}
 	
 	
-	surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = min;
 }
 
-__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA_H, int DATA_D)
+__global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_4(float *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1285,8 +1287,8 @@ __global__ void Erosion_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA
 	if(z+3.0f <= DATA_D-1.0f && y+2.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f) {tmp = tex3D(tex_Volume, x + 1.0 + 0.5f, y + 2.0 + 0.5f, z + 3.0 + 0.5f); min = (min > tmp) ? tmp : min;}
 	if(z+4.0f <= DATA_D-1.0f)                                                   {tmp = tex3D(tex_Volume, x + 0.0 + 0.5f, y + 0.0 + 0.5f, z + 4.0 + 0.5f); min = (min > tmp) ? tmp : min;}
 	
-	surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(min, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = min;
 }
 
 
@@ -1296,7 +1298,7 @@ extern "C" __declspec (dllexport) void dilateSurfaceSphereGPU(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0 || buffer == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -1312,20 +1314,14 @@ extern "C" __declspec (dllexport) void dilateSurfaceSphereGPU(
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 
 	switch(radius){
-		case 1: Dilation_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 2: Dilation_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 3: Dilation_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 4: Dilation_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
+		case 1: Dilation_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 2: Dilation_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 3: Dilation_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 4: Dilation_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
 	}
 	checkCudaErrors( cudaDeviceSynchronize() );
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_Volume));
-	checkCudaErrors(cudaBindTextureToArray(tex_Volume, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	
+	copyToSuf3DFromDeviceMem(buffer, imageW, imageH, imageZ);
 }
 
 extern "C" __declspec (dllexport) void erodeSurfaceSphereGPU(
@@ -1334,7 +1330,7 @@ extern "C" __declspec (dllexport) void erodeSurfaceSphereGPU(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0 || buffer == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -1350,29 +1346,23 @@ extern "C" __declspec (dllexport) void erodeSurfaceSphereGPU(
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 
 	switch(radius){
-		case 1: Erosion_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 2: Erosion_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 3: Erosion_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 4: Erosion_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
+		case 1: Erosion_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 2: Erosion_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 3: Erosion_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
+		case 4: Erosion_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(buffer, imageW, imageH, imageZ); break;
 	}
 	checkCudaErrors( cudaDeviceSynchronize() );
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_Volume));
-	checkCudaErrors(cudaBindTextureToArray(tex_Volume, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	
+	copyToSuf3DFromDeviceMem(buffer, imageW, imageH, imageZ);
 }
 
 extern "C" __declspec (dllexport) void destructCuda_Suf3D()
 {
-	if(_surfArray1)checkCudaErrors(cudaFreeArray(_surfArray1));
-	_surfArray1 = 0;
+	if(tex_volumeArray)checkCudaErrors(cudaFreeArray(tex_volumeArray));
+	tex_volumeArray = 0;
 
-	if(_surfArray2)checkCudaErrors(cudaFreeArray(_surfArray2));
-	_surfArray2 = 0;
+	if(buffer)checkCudaErrors( cudaFree(buffer) );
+	buffer = 0;
 }
 
 extern "C" __declspec (dllexport) void initCuda_Suf3D(const float *d_volume, int imageW, int imageH, int imageZ)
@@ -1383,13 +1373,12 @@ extern "C" __declspec (dllexport) void initCuda_Suf3D(const float *d_volume, int
 	volumeSize.depth  = imageZ;
 
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray1, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray2, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-
+	checkCudaErrors(cudaMalloc3DArray(&tex_volumeArray, &channelDesc, volumeSize));
+	
 	// copy data to 3D array
 	cudaMemcpy3DParms copyParams = {0};
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)d_volume, volumeSize.width*sizeof(float), volumeSize.width, volumeSize.height);
-	copyParams.dstArray = _surfArray1;
+	copyParams.dstArray = tex_volumeArray;
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
@@ -1402,15 +1391,14 @@ extern "C" __declspec (dllexport) void initCuda_Suf3D(const float *d_volume, int
 	tex_Volume.addressMode[2] = cudaAddressModeClamp;
 
 	// bind array to 3D texture
-	checkCudaErrors(cudaBindTextureToArray(tex_Volume, _surfArray1));
+	checkCudaErrors(cudaBindTextureToArray(tex_Volume, tex_volumeArray));
 
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	checkCudaErrors( cudaMalloc((void **)(&buffer), imageZ * imageW * imageH * sizeof(float)) );
 }
 
 extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D(float *d_output, int imageW, int imageH, int imageZ)
 {
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0)return;
 
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -1418,7 +1406,7 @@ extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D(float *d_output,
 	volumeSize.depth  = imageZ;
 
 	cudaMemcpy3DParms copyParams = {0};
-	copyParams.srcArray = _surfArray1;
+	copyParams.srcArray = tex_volumeArray;
 	copyParams.dstPtr   = make_cudaPitchedPtr((void *)d_output, volumeSize.width*sizeof(float), volumeSize.width, volumeSize.height);
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
@@ -1428,7 +1416,7 @@ extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D(float *d_output,
 
 extern "C" __declspec (dllexport) void copyToSuf3DFromDeviceMem(float *d_input, int imageW, int imageH, int imageZ)
 {
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0)return;
 
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -1437,18 +1425,20 @@ extern "C" __declspec (dllexport) void copyToSuf3DFromDeviceMem(float *d_input, 
 
 	cudaMemcpy3DParms copyParams = {0};
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)d_input, volumeSize.width*sizeof(float), volumeSize.width, volumeSize.height);
-	copyParams.dstArray = _surfArray1;
+	copyParams.dstArray = tex_volumeArray;
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
 	
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 
 	checkCudaErrors(cudaUnbindTexture(tex_Volume));
-	checkCudaErrors(cudaBindTextureToArray(tex_Volume, _surfArray1));
+
+	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
+	checkCudaErrors(cudaBindTextureToArray(tex_Volume, tex_volumeArray));
 }
 
 
-__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA_H, int DATA_D)
+__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_1(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1469,11 +1459,11 @@ __global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W,
 	if(y+1.0f <= DATA_H-1.0f && d > 1){nbr = tex3D(tex_VolumeI, x + 0.0f, y + 1.0f, z + 0.0f); if(nbr >= 0){d = 1; own = nbr;}}
 	if(z+1.0f <= DATA_D-1.0f && d > 1){nbr = tex3D(tex_VolumeI, x + 0.0f, y + 0.0f, z + 1.0f); if(nbr >= 0){d = 1; own = nbr;}}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA_H, int DATA_D)
+__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_2(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1521,11 +1511,11 @@ __global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W,
 	if(z+2.0f <= DATA_D-1.0f                                                   && d > 4) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 2.0); if(nbr >= 0){d = 4; own = nbr;}}
 
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA_H, int DATA_D)
+__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_3(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1663,11 +1653,11 @@ __global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W,
 	if(z+3.0f <= DATA_D-1.0f                                                   && d > 9) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 3.0); if(nbr >= 0){d = 9; own = nbr;}}
 
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA_H, int DATA_D)
+__global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_4(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1939,12 +1929,12 @@ __global__ void DilationSegments_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W,
 	if(z+3.0f <= DATA_D-1.0f && y+2.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f && d > 14) {nbr = tex3D(tex_VolumeI, x + 1.0, y + 2.0, z + 3.0); if(nbr >= 0){d = 14; own = nbr;}}
 	if(z+4.0f <= DATA_D-1.0f                                                   && d > 16) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 4.0); if(nbr >= 0){d = 16; own = nbr;}}
 	
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
 //âÊëúÇÃí[ÇÕé˚èkÇµÇ»Ç¢
-__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_1(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -1965,11 +1955,11 @@ __global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, 
 	if(y+1.0f <= DATA_H-1.0f && d > 1){nbr = tex3D(tex_VolumeI, x + 0.0f, y + 1.0f, z + 0.0f); if(own != nbr){d = 1; own = -1;}}
 	if(z+1.0f <= DATA_D-1.0f && d > 1){nbr = tex3D(tex_VolumeI, x + 0.0f, y + 0.0f, z + 1.0f); if(own != nbr){d = 1; own = -1;}}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_2(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2016,11 +2006,11 @@ __global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, 
 	if(z+1.0f <= DATA_D-1.0f && y+1.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f && d > 3) {nbr = tex3D(tex_VolumeI, x + 1.0, y + 1.0, z + 1.0); if(own != nbr){d = 3; own = -1;}}
 	if(z+2.0f <= DATA_D-1.0f                                                   && d > 4) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 2.0); if(own != nbr){d = 4; own = -1;}}
 
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_3(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2157,11 +2147,11 @@ __global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, 
 	if(z+2.0f <= DATA_D-1.0f && y+2.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f && d > 9) {nbr = tex3D(tex_VolumeI, x + 1.0, y + 2.0, z + 2.0); if(own != nbr){d = 9; own = -1;}}
 	if(z+3.0f <= DATA_D-1.0f                                                   && d > 9) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 3.0); if(own != nbr){d = 9; own = -1;}}
 
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_4(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2432,12 +2422,12 @@ __global__ void ErosionSegments_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, 
 	if(z+3.0f <= DATA_D-1.0f && y+2.0f <= DATA_H-1.0f && x+1.0f <= DATA_W-1.0f && d > 14) {nbr = tex3D(tex_VolumeI, x + 1.0, y + 2.0, z + 3.0); if(own != nbr){d = 14; own = -1;}}
 	if(z+4.0f <= DATA_D-1.0f                                                   && d > 16) {nbr = tex3D(tex_VolumeI, x + 0.0, y + 0.0, z + 4.0); if(own != nbr){d = 16; own = -1;}}
 
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
 //âÊëúÇÃí[Ç‡é˚èkÇ∑ÇÈ
-__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_1(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2462,11 +2452,11 @@ __global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_1(int DATA_W,
 		if(d > 1){nbr = tex3D(tex_VolumeI, x + 0.0f, y + 0.0f, z + 1.0f); if(own != nbr){d = 1; own = -1;}}
 	}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_2(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2517,11 +2507,11 @@ __global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_2(int DATA_W,
 		if(d > 4)  nbr = tex3D(tex_VolumeI, x + 0, y + 0, z + 2); if(own != nbr){d = 4; own = -1;}
 	}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_3(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2662,11 +2652,11 @@ __global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_3(int DATA_W,
 		if(d > 9)  nbr = tex3D(tex_VolumeI, x + 0, y + 0, z + 3); if(own != nbr){d = 9; own = -1;}
 	}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
-__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W, int DATA_H, int DATA_D)
+__global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_4(int *out, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2941,8 +2931,8 @@ __global__ void ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_4(int DATA_W,
 		if(d > 16)  nbr = tex3D(tex_VolumeI, x + 0, y + 0, z + 4); if(own != nbr){d = 16; own = -1;}
 	}
 		
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
-
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
 extern "C" __declspec (dllexport) void dilateSegmentsSurfaceSphereGPU(
@@ -2951,7 +2941,7 @@ extern "C" __declspec (dllexport) void dilateSegmentsSurfaceSphereGPU(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0 || bufferI == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -2967,21 +2957,14 @@ extern "C" __declspec (dllexport) void dilateSegmentsSurfaceSphereGPU(
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 
 	switch(radius){
-		case 1: DilationSegments_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 2: DilationSegments_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 3: DilationSegments_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 4: DilationSegments_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
+		case 1: DilationSegments_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 2: DilationSegments_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 3: DilationSegments_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 4: DilationSegments_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
 	}
 	checkCudaErrors( cudaDeviceSynchronize() );
 
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
 //âÊëúÇÃí[ÇÕé˚èkÇµÇ»Ç¢
@@ -2991,7 +2974,7 @@ extern "C" __declspec (dllexport) void erodeSegmentsSurfaceSphereGPU(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0 || bufferI == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -3007,20 +2990,13 @@ extern "C" __declspec (dllexport) void erodeSegmentsSurfaceSphereGPU(
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 
 	switch(radius){
-		case 1: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 2: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 3: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 4: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
+		case 1: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 2: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 3: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 4: ErosionSegments_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
 	}
 	
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
 //âÊëúÇÃí[Ç‡é˚èkÇ∑ÇÈ
@@ -3030,7 +3006,7 @@ extern "C" __declspec (dllexport) void erodeSegmentsSurfaceSphereGPU_v2(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0 || bufferI == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -3046,20 +3022,13 @@ extern "C" __declspec (dllexport) void erodeSegmentsSurfaceSphereGPU_v2(
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 
 	switch(radius){
-		case 1: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 2: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 3: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
-		case 4: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(imageW, imageH, imageZ); break;
+		case 1: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_1<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 2: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_2<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 3: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_3<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
+		case 4: ErosionSegments2_Spherical_3D_Surface_Unrolled_rad_4<<<dimGrid, dimBlock>>>(bufferI, imageW, imageH, imageZ); break;
 	}
 	
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
 extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, int imageW, int imageH, int imageZ)
@@ -3070,34 +3039,32 @@ extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, i
 	volumeSize.depth  = imageZ;
 
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray1, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray2, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-
+	checkCudaErrors(cudaMalloc3DArray(&tex_volumeArray, &channelDesc, volumeSize));
+		
 	// copy data to 3D array
 	cudaMemcpy3DParms copyParams = {0};
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)d_volume, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
-	copyParams.dstArray = _surfArray1;
+	copyParams.dstArray = tex_volumeArray;
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 
 	// set texture parameters
 	tex_VolumeI.normalized = false;                      // access with normalized texture coordinates
-	tex_VolumeI.filterMode = cudaFilterModePoint;       // linear interpolation
+	tex_VolumeI.filterMode = cudaFilterModePoint;       
 	tex_VolumeI.addressMode[0] = cudaAddressModeClamp;  // wrap texture coordinates
 	tex_VolumeI.addressMode[1] = cudaAddressModeClamp;
 	tex_VolumeI.addressMode[2] = cudaAddressModeClamp;
 
 	// bind array to 3D texture
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
+	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
 
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	checkCudaErrors( cudaMalloc((void **)(&bufferI),   imageZ * imageW * imageH * sizeof(int)) );
 }
 
 extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D_Int(int *d_output, int imageW, int imageH, int imageZ)
 {
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0)return;
 
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -3105,7 +3072,7 @@ extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D_Int(int *d_outpu
 	volumeSize.depth  = imageZ;
 
 	cudaMemcpy3DParms copyParams = {0};
-	copyParams.srcArray = _surfArray1;
+	copyParams.srcArray = tex_volumeArray;
 	copyParams.dstPtr   = make_cudaPitchedPtr((void *)d_output, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
@@ -3115,7 +3082,7 @@ extern "C" __declspec (dllexport) void copyToDeviceMemFromSuf3D_Int(int *d_outpu
 
 extern "C" __declspec (dllexport) void copyToSuf3DFromDeviceMem_Int(int *d_input, int imageW, int imageH, int imageZ)
 {
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0)return;
 
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -3124,18 +3091,20 @@ extern "C" __declspec (dllexport) void copyToSuf3DFromDeviceMem_Int(int *d_input
 
 	cudaMemcpy3DParms copyParams = {0};
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)d_input, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
-	copyParams.dstArray = _surfArray1;
+	copyParams.dstArray = tex_volumeArray;
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToDevice;
 	
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 
 	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
+
+	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
+	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
 }
 
 
-__global__ void watershed3D_kernel(float th, int DATA_W, int DATA_H, int DATA_D)
+__global__ void watershed3D_kernel(int *out, float th, int DATA_W, int DATA_H, int DATA_D)
 {
 	int x = blockIdx.x * blockDim.x + threadIdx.x;
 	int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -3160,7 +3129,8 @@ __global__ void watershed3D_kernel(float th, int DATA_W, int DATA_H, int DATA_D)
 		if(y+1.0f <= DATA_H-1.0f && d > 1){nbr_tmp = tex3D(tex_VolumeI, x + 0.0f, y + 1.0f, z + 0.0f); if(nbr_tmp >= 0){d = 1; own = (nbr < 0 || nbr == nbr_tmp) ? nbr_tmp : -1; nbr = nbr_tmp;}}
 		if(z+1.0f <= DATA_D-1.0f && d > 1){nbr_tmp = tex3D(tex_VolumeI, x + 0.0f, y + 0.0f, z + 1.0f); if(nbr_tmp >= 0){d = 1; own = (nbr < 0 || nbr == nbr_tmp) ? nbr_tmp : -1; nbr = nbr_tmp;}}
 	}
-	surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	//surf3Dwrite(own, _surface2, (x + 0)*4, y + 0, z + 0, cudaBoundaryModeTrap);
+	out[z*DATA_H*DATA_W + y*DATA_W + x] = own;
 }
 
 extern "C" __declspec (dllexport) void watershed3dGPU(
@@ -3169,7 +3139,7 @@ extern "C" __declspec (dllexport) void watershed3dGPU(
     int imageH,
 	int imageZ
 ){
-	if(_surfArray1 == 0 || _surfArray2 == 0 || tex_volumeArray == 0)return;
+	if(tex_volumeArray == 0 || tex_volumeArray2 == 0 || bufferI == 0)return;
 
 	// 32 threads along x, 16 along y
 	int threadsInX = 32;
@@ -3184,17 +3154,10 @@ extern "C" __declspec (dllexport) void watershed3dGPU(
     dim3 dimGrid  = dim3(blocksInX, blocksInY, blocksInZ);
     dim3 dimBlock = dim3(threadsInX, threadsInY, threadsInZ);
 	
-	watershed3D_kernel<<<dimGrid, dimBlock>>>(th, imageW, imageH, imageZ);
+	watershed3D_kernel<<<dimGrid, dimBlock>>>(bufferI, th, imageW, imageH, imageZ);
 	checkCudaErrors( cudaDeviceSynchronize() );
 
-	cudaArray *tmp;
-	tmp = _surfArray1;
-	_surfArray1 = _surfArray2;
-	_surfArray2 = tmp;
-	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
 extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, const float *h_src, int imageW, int imageH, int imageZ)
@@ -3205,12 +3168,12 @@ extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, con
 	volumeSize.depth  = imageZ;
 
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
-	checkCudaErrors(cudaMalloc3DArray(&tex_volumeArray, &channelDesc, volumeSize));
+	checkCudaErrors(cudaMalloc3DArray(&tex_volumeArray2, &channelDesc, volumeSize));
 
 	// copy data to 3D array
 	cudaMemcpy3DParms copyParams = {0};
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)h_src, volumeSize.width*sizeof(float), volumeSize.width, volumeSize.height);
-	copyParams.dstArray = tex_volumeArray;
+	copyParams.dstArray = tex_volumeArray2;
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyHostToDevice;
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
@@ -3223,16 +3186,15 @@ extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, con
 	tex_Volume.addressMode[2] = cudaAddressModeClamp;
 
 	// bind array to 3D texture
-	checkCudaErrors(cudaBindTextureToArray(tex_Volume, tex_volumeArray));
+	checkCudaErrors(cudaBindTextureToArray(tex_Volume, tex_volumeArray2));
 
 	channelDesc = cudaCreateChannelDesc<int>();
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray1, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-	checkCudaErrors(cudaMalloc3DArray(&_surfArray2, &channelDesc, volumeSize, cudaArraySurfaceLoadStore));
-
+	checkCudaErrors(cudaMalloc3DArray(&tex_volumeArray, &channelDesc, volumeSize));
+	
 	// copy data to 3D array
 	cudaMemcpy3DParms copyParams_suf = {0};
 	copyParams_suf.srcPtr   = make_cudaPitchedPtr((void *)h_seed, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
-	copyParams_suf.dstArray = _surfArray1;
+	copyParams_suf.dstArray = tex_volumeArray;
 	copyParams_suf.extent   = volumeSize;
 	copyParams_suf.kind     = cudaMemcpyHostToDevice;
 	checkCudaErrors(cudaMemcpy3D(&copyParams_suf));
@@ -3245,27 +3207,26 @@ extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, con
 	tex_VolumeI.addressMode[2] = cudaAddressModeClamp;
 
 	// bind array to 3D texture
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, _surfArray1));
+	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
 
-	//checkCudaErrors(cudaBindSurfaceToArray(_surface1, _surfArray1));
-	checkCudaErrors(cudaBindSurfaceToArray(_surface2, _surfArray2));
+	checkCudaErrors( cudaMalloc((void **)(&bufferI),   imageZ * imageW * imageH * sizeof(int)) );
 }
 
 extern "C" __declspec (dllexport) void destructCuda_Watershed()
 {
-	if(_surfArray1)checkCudaErrors(cudaFreeArray(_surfArray1));
-	_surfArray1 = 0;
-
-	if(_surfArray2)checkCudaErrors(cudaFreeArray(_surfArray2));
-	_surfArray2 = 0;
-
 	if(tex_volumeArray)checkCudaErrors(cudaFreeArray(tex_volumeArray));
 	tex_volumeArray = 0;
+	
+	if(tex_volumeArray2)checkCudaErrors(cudaFreeArray(tex_volumeArray2));
+	tex_volumeArray2 = 0;
+
+	if(bufferI)checkCudaErrors( cudaFree(bufferI) );
+	bufferI = 0;
 }
 
 extern "C" __declspec (dllexport) void copyToHostMemFromSuf3D_Int(int *h_output, int imageW, int imageH, int imageZ)
 {
-	if(_surfArray1 == 0 || _surfArray2 == 0)return;
+	if(tex_volumeArray == 0)return;
 
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -3273,7 +3234,7 @@ extern "C" __declspec (dllexport) void copyToHostMemFromSuf3D_Int(int *h_output,
 	volumeSize.depth  = imageZ;
 
 	cudaMemcpy3DParms copyParams = {0};
-	copyParams.srcArray = _surfArray1;
+	copyParams.srcArray = tex_volumeArray;
 	copyParams.dstPtr   = make_cudaPitchedPtr((void *)h_output, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
 	copyParams.extent   = volumeSize;
 	copyParams.kind     = cudaMemcpyDeviceToHost;
