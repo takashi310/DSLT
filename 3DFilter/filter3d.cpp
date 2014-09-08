@@ -5145,6 +5145,11 @@ void Filter3D::generateHeightMapCPU(int blocksize_xy, int blocksize_z, float th,
 	hmapEmpty = false;
 }
 
+void Filter3D::clearHeightMap()
+{
+	hmapEmpty = true;
+}
+
 bool Filter3D::saveHeightMap(const char filename[])
 {
 	if(isEmpty)return false;
@@ -5456,7 +5461,7 @@ void Filter3D::simpleProjection(float *data, float bc_max, float bc_min, int sli
 	if(zbc_channel >= 0 && zbc_channel < nChannels)zbc_data = rawdata_resized + imageW*imageH*imageZ*zbc_channel;
 	else zbc_data = rawdata_resized;
 
-	if(dmap_isEnable && !hmapEmpty){
+	if(dmap_isEnable){
 		for(unsigned int i = 0; i < imageH; i++){
 			for(unsigned int j = 0; j < imageW; j++){
 				float imax = 0.0f;
@@ -5464,7 +5469,7 @@ void Filter3D::simpleProjection(float *data, float bc_max, float bc_min, int sli
 				if(zbc_isEnable)for(unsigned int s = 0; s < slice_id; s++)zbc_sum += zbc_data[s*imageW*imageH + i*imageW + j]; 
 
 				for(unsigned int k = slice_id; (k < imageZ) && (k <= slice_id + range); k++){
-					float d = k - hmap[i*imageW + j];
+					float d = k - (hmapEmpty ? 0.0f : hmap[i*imageW + j]);
 					if(d < 0.0f)d = 0.0f;
 					float v = data[k*imageW*imageH + i*imageW + j] * pow(1.0f + d_coefficient * d / imageZ, d_order);
 					if(zbc_isEnable){
@@ -5535,11 +5540,11 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 {
 	if(isEmpty)return;
 
-	if(dmap_isEnable && !hmapEmpty){
+	if(dmap_isEnable){
 		for(unsigned int i = 0; i < imageH; i++){
 			for(unsigned int j = 0; j < imageZ; j++){
 				//float v = data[j*imageW*imageH + i*imageW + currentX] * pow(1.0f + d_coefficient * dmap[j*imageW*imageH + i*imageW + currentX] / dmax, d_order);
-				float d = j - hmap[i*imageW + currentX];
+				float d = j - (hmapEmpty ? 0.0f : hmap[i*imageW + currentX]);
 				if(d < 0.0f)d = 0.0f;
 				float v = data[j*imageW*imageH + i*imageW + currentX] * pow(1.0f + d_coefficient * d / imageZ, d_order);
 				v = range_adjustment(v, bc_max, bc_min);
@@ -5613,11 +5618,11 @@ void Filter3D::setBufferZX(float *data, int currentY, float bc_max, float bc_min
 	if(zbc_channel >= 0 && zbc_channel < nChannels)zbc_data = rawdata_resized + imageW*imageH*imageZ*zbc_channel;
 	else zbc_data = rawdata_resized;
 
-	if(dmap_isEnable && !hmapEmpty){
+	if(dmap_isEnable){
 		for(unsigned int j = 0; j < imageW; j++){
 			float zbc_sum = 0.0f;
 			for(unsigned int i = 0; i < imageZ; i++){
-				float d = i - hmap[currentY*imageW + j];
+				float d = i - (hmapEmpty ? 0.0f : hmap[currentY*imageW + j]);
 				if(d < 0.0f)d = 0.0f;
 				float v = data[i*imageW*imageH + currentY*imageW + j] * pow(1.0f + d_coefficient * d / imageZ, d_order);
 				if(zbc_isEnable){
@@ -6033,12 +6038,12 @@ void Filter3D::setZPlotGraph(int x, int y, int z, float bc_max, float bc_min, bo
 
 void Filter3D::applyBC(float bc_max, float bc_min, bool dmap_isEnable, float d_coefficient, float d_order)
 {
-	if(dmap_isEnable && !hmapEmpty){
+	if(dmap_isEnable){
 		for(unsigned int z = 0; z < imageZ; z++){
 			for(unsigned int i = 0; i < imageH; i++){
 				for(unsigned int j = 0; j < imageW; j++){
 					//float v = imgdata[z*imageW*imageH + i*imageW + j] * pow(1.0f + d_coefficient * dmap[z*imageW*imageH + i*imageW + j] / dmax, d_order);
-					float d = z - hmap[i*imageW + j];
+					float d = z - (hmapEmpty ? 0.0f : hmap[i*imageW + j]);
 					if(d < 0.0f)d = 0.0f;
 					float v = imgdata[z*imageW*imageH + i*imageW + j] * pow(1.0f + d_coefficient * d / imageZ, d_order);
 					imgdata[z*imageW*imageH + i*imageW + j] = range_adjustment(v, bc_max, bc_min);

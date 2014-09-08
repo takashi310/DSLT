@@ -207,6 +207,7 @@ namespace TestGPUclass {
 
 		void generateHeightMapGPU(int blocksize_xy, int blocksize_z, float th, int thresholdType, int smoothLv);
 		void generateHeightMapCPU(int blocksize_xy, int blocksize_z, float th, int thresholdType);
+		void clearHeightMap();
 		void heightMapBasedProjection(float *data, float offset, float depth, int range, float th);
 		void heightMapSimpleProjection(float *data, float offset, float depth, int range, bool isBinarize, float th, bool dmap_isEnable, int d_range);
 		void simpleProjection(float *data, float bc_max, float bc_min, int slice_id, int range, bool seg_show = false, int seg_minVol = 0, bool dmap_isEnable = false, float d_coefficient = 1.0f, float d_order = 1.0f, bool zbc_isEnable = false, int zbc_channel = 0, float zbc_coefficient = 1.0f, float zbc_order = 1.0f);

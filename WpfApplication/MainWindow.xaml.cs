@@ -505,6 +505,13 @@ namespace WpfApplication1
 
             im_mag_lv = 0;
 
+			src_sv_xy.Visibility = Visibility.Visible;
+			src_sv_yz.Visibility = Visibility.Visible;
+			src_sv_zx.Visibility = Visibility.Visible;
+			dst_sv_xy.Visibility = Visibility.Visible;
+			dst_sv_yz.Visibility = Visibility.Visible;
+			dst_sv_zx.Visibility = Visibility.Visible;
+
             ortho_grid_src.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
             ortho_grid_dst.ColumnDefinitions.ElementAt(2).Width = new GridLength((double)imageZ / (double)imageW, GridUnitType.Star);
             ortho_grid_src.RowDefinitions.ElementAt(2).Height = new GridLength((double)imageZ / (double)imageH, GridUnitType.Star);
@@ -1147,10 +1154,9 @@ namespace WpfApplication1
             if (H_mean_rb.IsChecked.Value) c1.generateHeightMap((int)H_block_size_slider.Value, (int)H_Z_slider.Value, (float)H_th_slider.Value, 1, (int)H_SmLv_slider.Value);
 
 
-            updateImgXY();
-            updateImgYZ();
-            updateImgZX();
-            if (H_show_cb.IsChecked.Value)
+            updateImg();
+            
+			if (H_show_cb.IsChecked.Value)
             {
                 //sbw.Close();
                 //sbw = new SubWindow();
@@ -1166,6 +1172,14 @@ namespace WpfApplication1
                 sbw.HeightMap.Stretch = Stretch.Uniform;
             }
         }
+
+
+		private void H_clear_button_Click(object sender, RoutedEventArgs e)
+		{
+			if (c1.empty()) return;
+			c1.inactivateHeightMap();
+			updateImg();
+		}
 
         private void H_th_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -1212,14 +1226,21 @@ namespace WpfApplication1
             updateImg();
         }
 
+		private void DC_cb_CheckChanged(object sender, RoutedEventArgs e)
+		{
+			updateImg();
+		}
+
         private void DC_coefficient_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            c1.setDmapCoefficient((float)DC_coefficient_slider.Value);
+			if (!DC_coefficient_slider.IsEnabled) return;
+			c1.setDmapCoefficient((float)DC_coefficient_slider.Value);
             updateImg();
         }
 
         private void DC_order_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+			if (!DC_order_slider.IsEnabled) return;
             c1.setDmapOrder((float)DC_order_slider.Value);
             updateImg();
         }
@@ -1325,17 +1346,17 @@ namespace WpfApplication1
 				case "cbi_Erosion":
 					VisualizeListBoxItem(lbi_Erosion);
 					break;
-				case "cbi_ADTH":
-					VisualizeListBoxItem(lbi_AdaptiveThreshold);
+                case "cbi_LoacalTH":
+                    VisualizeListBoxItem(lbi_LoacalTH);
 					break;
-				case "cbi_ADTHLK":
-					VisualizeListBoxItem(lbi_AdaptiveThreshold_LineKernels);
+                case "cbi_DSLT":
+					VisualizeListBoxItem(lbi_DSLT);
 					break;
 				case "cbi_hMinima":
 					VisualizeListBoxItem(lbi_H_minima_Transform);
 					break;
-				case "cbi_segLK":
-					VisualizeListBoxItem(lbi_Segmentation_LineKernels);
+				case "cbi_segDSLT":
+                    VisualizeListBoxItem(lbi_Segmentation_DSLT);
 					break;
 				case "cbi_segHMT":
 					VisualizeListBoxItem(lbi_Segmentation_H_minima);
@@ -1344,24 +1365,24 @@ namespace WpfApplication1
 					VisualizeListBoxItem(lbi_Segmentation_FloodFill);
 					break;
                 case "cbi_SS_th":
-                    VisualizeListBoxItem(lbi_SegmentsSelection_th);
+					VisualizeListBoxItem(lbi_SegmentSelection_th);
                     break;
                 case "cbi_segD":
-                    VisualizeListBoxItem(lbi_SegmentsDilation);
+                    VisualizeListBoxItem(lbi_SegmentDilation);
                     break;
                 case "cbi_segE":
-                    VisualizeListBoxItem(lbi_SegmentsErosion);
+                    VisualizeListBoxItem(lbi_SegmentErosion);
                     break;
-                case "cbi_segC":
-                    VisualizeListBoxItem(lbi_SegmentsClosing);
+/*              case "cbi_segC":
+                    VisualizeListBoxItem(lbi_SegmentClosing);
                     break;
                 case "cbi_segO":
-                    VisualizeListBoxItem(lbi_SegmentsOpening);
+                    VisualizeListBoxItem(lbi_SegmentOpening);
                     break;
                 case "cbi_re_seg":
-                    VisualizeListBoxItem(lbi_Re_Segmention_DSLoT);
+                    VisualizeListBoxItem(lbi_Re_Segmention_DSLT);
                     break;
-                case "cbi_watershed":
+*/              case "cbi_watershed":
                     VisualizeListBoxItem(lbi_Watershed);
                     break;
 			}
@@ -1914,6 +1935,7 @@ namespace WpfApplication1
             }
            
         }
+
 
     }
 }

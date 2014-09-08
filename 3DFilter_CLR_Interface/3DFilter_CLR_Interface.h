@@ -142,6 +142,7 @@ namespace TestCVclass {
 		void dilation3D(int radius, int filterShape, bool copyToHostMemory);
 		void erosion3D(int radius, int filterShape, bool copyToHostMemory);
 		void generateHeightMap(int blocksize_xy, int blocksize_z, float th, int thresholdType, int smoothLv);
+		void inactivateHeightMap();
 		bool saveDst3DImage(System::String ^filename);
 		bool saveSrc2DImage(System::String ^filename);
 		bool saveDst2DImage(System::String ^filename);

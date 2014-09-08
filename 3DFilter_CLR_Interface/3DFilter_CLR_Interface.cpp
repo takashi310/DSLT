@@ -461,7 +461,7 @@ unsigned long Class1::getDstImageDataArrayXY([Runtime::InteropServices::Out] Int
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->dstdata, bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol);
+		flt3d->simpleProjection(flt3d->dstdata, bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 	//ptr = IntPtr(&(flt3d->dstdata[currentZ*flt3d->imageW*flt3d->imageH]));
 	ptr = IntPtr(flt3d->bufXY);
@@ -484,7 +484,7 @@ unsigned long Class1::getDstImageDataArrayYZ([Runtime::InteropServices::Out] Int
 		return 0;
 	}
 	
-	flt3d->setBufferYZ(flt3d->dstdata, currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range);
+	flt3d->setBufferYZ(flt3d->dstdata, currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
 	ptr = IntPtr(flt3d->bufYZ);
 	bytesperpixel = sizeof(unsigned char)*3;
@@ -505,7 +505,7 @@ unsigned long Class1::getDstImageDataArrayZX([Runtime::InteropServices::Out] Int
 		height = -1;
 		return 0;
 	}
-	flt3d->setBufferZX(flt3d->dstdata, currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range);
+	flt3d->setBufferZX(flt3d->dstdata, currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	ptr = IntPtr(flt3d->bufZX);
 	bytesperpixel = sizeof(unsigned char)*3;
@@ -782,6 +782,13 @@ void Class1::generateHeightMap(int blocksize_xy, int blocksize_z, float th, int 
 
 	if(flt3d->isEnableGPU)flt3d->generateHeightMapGPU(blocksize_xy, blocksize_z, th, thresholdType, smoothLv);
 	else flt3d->generateHeightMapCPU(blocksize_xy, blocksize_z, th, thresholdType);
+}
+
+void Class1::inactivateHeightMap()
+{
+	if(isEmpty)return;
+
+	flt3d->clearHeightMap();
 }
 
 void Class1::generateDepthMap()

@@ -48,9 +48,9 @@
         <Border Height="Auto" BorderBrush="#A0A0A0" BorderThickness="1" DockPanel.Dock="Left" Padding="3">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <CheckBox x:Name="inversion" Height="20" Margin="14,6,0,0" Checked="inversion_Checked" Unchecked="inversion_Unchecked">Inversion</CheckBox>
-                    <TextBox Name="debug_cmp_txt" Width="250" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" TextAlignment="Center"/>
-                    <TextBox Name="debug_txt" Width="100" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" TextAlignment="Right"/>
+                    <CheckBox x:Name="inversion" Visibility="Collapsed" Height="20" Margin="14,6,0,0" Checked="inversion_Checked" Unchecked="inversion_Unchecked">Inversion</CheckBox>
+                    <TextBox Name="debug_cmp_txt" Visibility="Collapsed" Width="250" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" TextAlignment="Center"/>
+                    <TextBox Name="debug_txt" Visibility="Collapsed" Width="100" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" TextAlignment="Right"/>
                     <Grid Width="Auto" Height="Auto" Margin="4,3,4,3">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="45"/>
@@ -142,6 +142,8 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=BC_max_slider}">Maximum</Label>
                                         <Slider x:Name="BC_max_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="1" ValueChanged="BC_max_slider_ValueChanged" />
@@ -150,6 +152,14 @@
                                         <Slider x:Name="BC_min_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="BC_min_slider_ValueChanged" />
                                         <TextBox Name="BC_min_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=BC_min_slider, Path=Value}" TextAlignment="Right"/>
 
+                                        <CheckBox x:Name="DC_cb" Grid.Column="0" Grid.Row="2" IsChecked="False" Height="20" Margin="8,8,0,0" Checked="DC_cb_CheckChanged" Unchecked="DC_cb_CheckChanged">Z Gradient</CheckBox>
+
+                                        <Label IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_coefficient_slider}">Coefficient</Label>
+                                        <Slider x:Name="DC_coefficient_slider" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="10" Minimum="0" Value="100" ValueChanged="DC_coefficient_slider_ValueChanged" />
+                                        <TextBox Name="DC_coefficient_txt" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_coefficient_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_order_slider}">Order</Label>
+                                        <Slider x:Name="DC_order_slider" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10" Minimum="1" Value="1" ValueChanged="DC_order_slider_ValueChanged" />
+                                        <TextBox Name="DC_order_txt" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_order_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="BC_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="BC_apply_button_Click">Apply</Button>
@@ -202,7 +212,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_block_size_slider}">Radius</Label>
                                         <Slider x:Name="H_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="64" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_block_size_slider_ValueChanged" />
                                         <TextBox Name="H_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_block_size_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_SmLv_slider}">Smooth Lv</Label>
@@ -223,17 +233,18 @@
                                         <Label Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_range_slider}">Range</Label>
                                         <Slider x:Name="H_range_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_range_slider_ValueChanged" />
                                         <TextBox Name="H_range_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_range_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_proj_th_slider}">TH(Proj)</Label>
-                                        <Slider x:Name="H_proj_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_proj_th_slider_ValueChanged" />
-                                        <TextBox Name="H_proj_th_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_proj_th_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_proj_th_slider}">TH(Proj)</Label>
+                                        <Slider x:Name="H_proj_th_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_proj_th_slider_ValueChanged" />
+                                        <TextBox Name="H_proj_th_txt" Visibility="Collapsed" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_proj_th_slider, Path=Value}" TextAlignment="Right"/>
 
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="H_generate_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_generate_button_Click">Generate</Button>
+                                        <Button x:Name="H_clear_button" Width="80" Height="25" Margin="12,6,15,0" HorizontalAlignment="Left" Click="H_clear_button_Click">Clear</Button>
                                     </Grid>
-                                    <CheckBox x:Name="H_crop_cb" IsChecked="False" Height="20" Margin="12,10,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Cropping (Depth)</CheckBox>
-                                    <CheckBox x:Name="H_crop_hmap_cb" IsChecked="True" Height="20" Margin="12,0,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Use Hmap for Cropping</CheckBox>
-                                    <Grid Width="Auto" Height="Auto">
+                                    <CheckBox x:Name="H_crop_cb" IsChecked="False" Height="20" Margin="12,15,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Cropping</CheckBox>
+                                    <CheckBox x:Name="H_crop_hmap_cb" IsEnabled="{Binding ElementName=H_crop_cb, Path=IsChecked}" IsChecked="True" Height="20" Margin="12,0,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Use Hmap for Cropping</CheckBox>
+                                    <Grid Width="Auto" Height="Auto" IsEnabled="{Binding ElementName=H_crop_cb, Path=IsChecked}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
                                             <ColumnDefinition Width="120"/>
@@ -244,28 +255,30 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_upper_slider}">Upper Border</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_upper_slider}">Upper (Z)</Label>
                                         <Slider x:Name="H_upper_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_crop_ValueChanged"/>
                                         <TextBox Name="H_upper_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_upper_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_lower_slider}">Lower Border</Label>
+                                        <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_lower_slider}">Lower (Z)</Label>
                                         <Slider x:Name="H_lower_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="1" Minimum="1" Value="1" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_crop_ValueChanged"/>
                                         <TextBox Name="H_lower_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_lower_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_halo_slider}">XY Halo</Label>
-                                        <Slider x:Name="H_halo_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="1" Minimum="1" Value="0" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_crop_ValueChanged"/>
+                                        <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_halo_slider}">XY Border</Label>
+                                        <Slider x:Name="H_halo_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="1" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_crop_ValueChanged"/>
                                         <TextBox Name="H_halo_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_halo_slider, Path=Value}" TextAlignment="Right"/>
                                         
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="H_crop_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_crop_apply_button_Click">Apply</Button>
+                                        <Button x:Name="H_crop_apply_button" IsEnabled="{Binding ElementName=H_crop_cb, Path=IsChecked}" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_crop_apply_button_Click">Apply</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem Name="DepthCode">
+                        <ListBoxItem Name="DepthCode"  Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
+                                <!--
                                 <GroupBox.Header>
                                     <CheckBox x:Name="DC_cb" Height="20" Margin="0,0,0,0" IsChecked="False">Depth Code</CheckBox>
                                 </GroupBox.Header>
+                                -->
                                 <StackPanel>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
@@ -281,12 +294,7 @@
                                         <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_range_slider}">Range</Label>
                                         <Slider x:Name="DC_range_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="500" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="DC_range_slider_ValueChanged" />
                                         <TextBox Name="DC_range_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_range_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_coefficient_slider}">Coefficient</Label>
-                                        <Slider x:Name="DC_coefficient_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="10" Minimum="0" Value="100" ValueChanged="DC_coefficient_slider_ValueChanged" />
-                                        <TextBox Name="DC_coefficient_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_coefficient_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_order_slider}">Order</Label>
-                                        <Slider x:Name="DC_order_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="10" Minimum="1" Value="1" ValueChanged="DC_order_slider_ValueChanged" />
-                                        <TextBox Name="DC_order_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_order_slider, Path=Value}" TextAlignment="Right"/>
+                                        
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="DC_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="DC_apply_button_Click">Apply</Button>
@@ -296,6 +304,7 @@
                         </ListBoxItem>
 
                         <ListBoxItem Name="Z_Brightness_Collection" Visibility="Collapsed">
+                            
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
                                 <GroupBox.Header>
                                     <CheckBox x:Name="ZBC_cb" Height="20" Margin="0,0,0,0" IsChecked="False">Z Brightness Collection</CheckBox>
@@ -327,6 +336,7 @@
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
+                            
                         </ListBoxItem>
                         <ListBoxItem Name="Segments">
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
@@ -370,18 +380,18 @@
                         <ComboBoxItem Name="cbi_Smoothing" Selected="cbi_Selected">Smoothing</ComboBoxItem>
                         <ComboBoxItem Name="cbi_Dilation"  Selected="cbi_Selected">Dilation</ComboBoxItem>
                         <ComboBoxItem Name="cbi_Erosion"   Selected="cbi_Selected">Erosion</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_ADTH"      Selected="cbi_Selected">Adaptive Threshold</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_ADTHLK"    Selected="cbi_Selected">Adaptive Threshold (Line Kernels)</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_LoacalTH"  Selected="cbi_Selected">Local Thresholding</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_DSLT"      Selected="cbi_Selected">DSLT</ComboBoxItem>
                         <ComboBoxItem Name="cbi_hMinima"   Selected="cbi_Selected">H-Minima Transform</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_segLK"     Selected="cbi_Selected">Segmentation (Line Kernels)</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_segDSLT"   Selected="cbi_Selected">Segmentation (DSLT)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segHMT"    Selected="cbi_Selected">Segmentation (H-Minima Transform)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segFF"     Selected="cbi_Selected">Segmentation (Flood Fill)</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_SS_th"     Selected="cbi_Selected">Segments Selection (Threshold)</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_segD"      Selected="cbi_Selected">Segments Dilation</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_segE"      Selected="cbi_Selected">Segments Erosion</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_segC"      Selected="cbi_Selected">Segments Closing</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_segO"      Selected="cbi_Selected">Segments Opening</ComboBoxItem>
-                        <ComboBoxItem Name="cbi_re_seg"    Selected="cbi_Selected">Re-segmention</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_SS_th"     Selected="cbi_Selected">Segment Selection (Threshold)</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_segD"      Selected="cbi_Selected">Segment Dilation</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_segE"      Selected="cbi_Selected">Segment Erosion</ComboBoxItem>
+                        <!--<ComboBoxItem Name="cbi_segC"      Selected="cbi_Selected">Segments Closing</ComboBoxItem>-->
+                        <!--<ComboBoxItem Name="cbi_segO"      Selected="cbi_Selected">Segments Opening</ComboBoxItem>-->
+                        <!--<ComboBoxItem Name="cbi_re_seg"    Selected="cbi_Selected">Re-segmention</ComboBoxItem>-->
                         <ComboBoxItem Name="cbi_watershed" Selected="cbi_Selected">Watershed</ComboBoxItem>
                     </ComboBox>
                     <ListBox x:Name="listBox" Background="Transparent" Drop="listBox_Drop" HorizontalContentAlignment="Center">
@@ -407,7 +417,7 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="SM_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="SM_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -429,13 +439,13 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SM_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SM_block_size_slider}">Radius</Label>
                                         <Slider x:Name="SM_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SM_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SM_block_size_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="SM_applyXY_button" Width="80" Height="25" Margin="15,6,0,0" HorizontalAlignment="Left">ApplyXY</Button>
-                                        <Button x:Name="SM_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="SM_apply_button_Click">Apply</Button>
+                                        <Button Visibility="Collapsed" x:Name="SM_applyXY_button" Width="80" Height="25" Margin="15,6,0,0" HorizontalAlignment="Left">ApplyXY</Button>
+                                        <Button x:Name="SM_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="SM_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
@@ -451,7 +461,7 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="DL_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="DL_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="105"/>
@@ -471,12 +481,12 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DL_radius_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DL_radius_slider}">Radius</Label>
                                         <Slider x:Name="DL_radius_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="DL_radius_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DL_radius_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="DL_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="DL_apply_button_Click">Apply</Button>
+                                        <Button x:Name="DL_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="DL_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
@@ -492,7 +502,7 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="ER_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="ER_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="105"/>
@@ -512,28 +522,28 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=ER_radius_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=ER_radius_slider}">Radius</Label>
                                         <Slider x:Name="ER_radius_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="ER_radius_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=ER_radius_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="ER_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="ER_apply_button_Click">Apply</Button>
+                                        <Button x:Name="ER_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="ER_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_AdaptiveThreshold" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_LoacalTH" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Adaptive Threshold</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Local Thresholding</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="AT_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="AT_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -555,7 +565,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=AT_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=AT_block_size_slider}">Radius</Label>
                                         <Slider x:Name="AT_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="AT_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=AT_block_size_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=AT_C_slider}">C</Label>
@@ -563,24 +573,24 @@
                                         <TextBox Name="AT_C_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=AT_C_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="AT_applyXY_button" Width="80" Height="25" Margin="15,6,0,0" HorizontalAlignment="Left" Click="AT_applyXY_button_Click">ApplyXY</Button>
-                                        <Button x:Name="AT_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="AT_apply_button_Click">Apply</Button>
+                                        <Button Visibility="Collapsed" x:Name="AT_applyXY_button" Width="80" Height="25" Margin="15,6,0,0" HorizontalAlignment="Left" Click="AT_applyXY_button_Click">ApplyXY</Button>
+                                        <Button x:Name="AT_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="AT_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_Segmentation_LineKernels" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_Segmentation_DSLT" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segmentation (Line Kernels)</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segmentation (DSLT)</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="SGL_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="SGL_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -613,7 +623,7 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_block_size_slider}">Radius</Label>
                                         <Slider x:Name="SGL_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGL_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_block_size_slider, Path=Value}" TextAlignment="Right"/>
 
@@ -646,7 +656,7 @@
                                         <TextBox Name="SGL_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="8" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_Closing_slider}">Closing</Label>
-                                        <Slider x:Name="SGL_Closing_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="8" Margin="0" Maximum="50" Minimum="0" Value="3" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <Slider x:Name="SGL_Closing_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="8" Margin="0" Maximum="50" Minimum="0" Value="2" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGL_Closing_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="8" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_Closing_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
@@ -655,18 +665,18 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_AdaptiveThreshold_LineKernels" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_DSLT" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Adaptive Threshold (Line Kernels)</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">DSLT</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="ADTHLK_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="ADTHLK_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -694,7 +704,7 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=ADTHLK_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=ADTHLK_block_size_slider}">Radius</Label>
                                         <Slider x:Name="ADTHLK_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="ADTHLK_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=ADTHLK_block_size_slider, Path=Value}" TextAlignment="Right"/>
 
@@ -711,7 +721,7 @@
                                         <TextBox Name="ADTHLK_C_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=ADTHLK_C_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
-                                        <Button x:Name="ADTHLK_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="ADTHLK_apply_button_Click">Apply</Button>
+                                        <Button x:Name="ADTHLK_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="ADTHLK_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
@@ -727,7 +737,7 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="SGH_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="SGH_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -752,24 +762,24 @@
                                         <Slider x:Name="SGH_maxh_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="1" Minimum="0" Value="20"/>
                                         <TextBox Name="SGH_maxh_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_maxh_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_check_slider}">Check</Label>
-                                        <Slider x:Name="SGH_check_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="1000" Minimum="0" Value="50"/>
-                                        <TextBox Name="SGH_check_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_check_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_check_slider}">Check</Label>
+                                        <Slider Visibility="Collapsed" x:Name="SGH_check_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="1000" Minimum="0" Value="50"/>
+                                        <TextBox Visibility="Collapsed" Name="SGH_check_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_check_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_interval_slider}">Interval</Label>
                                         <Slider x:Name="SGH_interval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.02"/>
                                         <TextBox Name="SGH_interval_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_interval_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_minVol_slider}">minVol</Label>
-                                        <Slider x:Name="SGH_minVol_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="500" IsSnapToTickEnabled="True" TickFrequency="1"/>
-                                        <TextBox Name="SGH_minVol_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_minVol_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_minVol_slider}">minVol</Label>
+                                        <Slider Visibility="Collapsed" x:Name="SGH_minVol_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="SGH_minVol_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_minVol_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_minInvalidStructureArea_slider}">Tolerance</Label>
                                         <Slider x:Name="SGH_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="10000" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGH_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_Closing_slider}">Closing</Label>
-                                        <Slider x:Name="SGH_Closing_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="50" Minimum="0" Value="3" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <Slider x:Name="SGH_Closing_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="50" Minimum="0" Value="2" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGH_Closing_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_Closing_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
@@ -789,7 +799,7 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="HMT_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
+                                    <CheckBox x:Name="HMT_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -809,9 +819,9 @@
                                         <Slider x:Name="HMT_h_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0.1"/>
                                         <TextBox Name="HMT_h_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=HMT_h_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=HMT_chkInterval_slider}">Chk Interval</Label>
-                                        <Slider x:Name="HMT_chkInterval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="10000" Minimum="0" Value="50" IsSnapToTickEnabled="True" TickFrequency="1"/>
-                                        <TextBox Name="HMT_chkInterval_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=HMT_chkInterval_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=HMT_chkInterval_slider}">Chk Interval</Label>
+                                        <Slider Visibility="Collapsed" x:Name="HMT_chkInterval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="10000" Minimum="0" Value="50" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="HMT_chkInterval_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=HMT_chkInterval_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="HMT_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="HMT_apply_button_Click">Apply</Button>
@@ -830,8 +840,8 @@
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="FF_auto_cb" Height="20" Margin="12,2,0,0">Auto</CheckBox>
-                                    <Grid Width="Auto" Height="Auto" Margin="0,3,0,0">
+                                    <CheckBox x:Name="FF_auto_cb" Height="20" Margin="12,2,0,0" Visibility="Collapsed">Auto</CheckBox>
+                                    <Grid Width="Auto" Height="Auto" Margin="0,3,0,0" Visibility="Collapsed">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -840,11 +850,11 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <CheckBox x:Name="FF_validation_cb" Height="20" Margin="12,0,12,3" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="0">Validation</CheckBox>
-                                        <CheckBox x:Name="FF_saveValidSeg_cb" Height="20" Margin="12,0,12,0" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="1">Valid Segments</CheckBox>
-                                        <CheckBox x:Name="FF_saveInvalidSeg_cb" Height="20" Margin="6,0,12,0" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1">Invalid Segments</CheckBox>
+                                        <CheckBox x:Name="FF_validation_cb" IsChecked="False" Height="20" Margin="12,0,12,3" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="0">Validation</CheckBox>
+                                        <CheckBox x:Name="FF_saveValidSeg_cb" IsChecked="False" Height="20" Margin="12,0,12,0" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="1">Valid Segments</CheckBox>
+                                        <CheckBox x:Name="FF_saveInvalidSeg_cb" IsChecked="False" Height="20" Margin="6,0,12,0" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="1">Invalid Segments</CheckBox>
                                     </Grid>
-                                    <Grid Width="Auto" Height="Auto" Margin="0,3,0,5">
+                                    <Grid Width="Auto" Height="Auto" Margin="0,3,0,5" Visibility="Collapsed">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -882,17 +892,17 @@
                                         <Slider x:Name="FF_minSize_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="100000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="FF_minSize__txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_minSize_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_noiseRad_slider}">Noise Rad</Label>
-                                        <Slider x:Name="FF_noiseRad_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="10" Minimum="0" Value="1" IsSnapToTickEnabled="True" TickFrequency="1"/>
-                                        <TextBox Name="FF_noiseRad_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_noiseRad_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_noiseRad_slider}">Noise Rad</Label>
+                                        <Slider Visibility="Collapsed" x:Name="FF_noiseRad_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="10" Minimum="0" Value="1" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="FF_noiseRad_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_noiseRad_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_wallRad_slider}">Wall Rad</Label>
-                                        <Slider x:Name="FF_wallRad_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="100" Minimum="0" Value="5" IsSnapToTickEnabled="True" TickFrequency="1"/>
-                                        <TextBox Name="FF_wallRad_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_wallRad_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_wallRad_slider}">Wall Rad</Label>
+                                        <Slider Visibility="Collapsed" x:Name="FF_wallRad_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="100" Minimum="0" Value="5" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="FF_wallRad_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_wallRad_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_minInvalidStructureArea_slider}">Tolerance</Label>
-                                        <Slider x:Name="FF_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="500" IsSnapToTickEnabled="True" TickFrequency="1"/>
-                                        <TextBox Name="FF_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=FF_minInvalidStructureArea_slider}">Tolerance</Label>
+                                        <Slider Visibility="Collapsed" x:Name="FF_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="500" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="FF_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=FF_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 
                                     </Grid>
                                     <Grid>
@@ -901,11 +911,11 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_SegmentsSelection_th" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_SegmentSelection_th" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segments Selection th</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segment Selection th</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
@@ -939,11 +949,11 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_SegmentsDilation" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_SegmentDilation" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segments Dilation</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segment Dilation</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
@@ -976,18 +986,18 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_SegmentsErosion" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_SegmentErosion" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segments Erosion</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segment Erosion</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
                                     </Grid>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="SGE_clamp_cb" Height="20" Margin="12,2,0,0" IsChecked="False">clamp</CheckBox>
+                                    <CheckBox x:Name="SGE_clamp_cb" Height="20" Margin="12,2,0,0" IsChecked="False">Clamp</CheckBox>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -1014,7 +1024,7 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_SegmentsClosing" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_SegmentClosing" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
@@ -1051,7 +1061,7 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_SegmentsOpening" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_SegmentOpening" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
@@ -1088,11 +1098,11 @@
                                 </StackPanel>
                             </GroupBox>
                         </ListBoxItem>
-                        <ListBoxItem x:Name="lbi_Re_Segmention_DSLoT" Visibility="Collapsed">
+                        <ListBoxItem x:Name="lbi_Re_Segmention_DSLT" Visibility="Collapsed">
                              <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
                                 <GroupBox.Header>
                                     <Grid>
-                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Re-segmention (DSLoT)</Label>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Re-segmention (DSLT)</Label>
                                         <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
                                             <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
                                         </Button>
@@ -1127,7 +1137,7 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=RSD_block_size_slider}">Block Size</Label>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=RSD_block_size_slider}">Radius</Label>
                                         <Slider x:Name="RSD_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="RSD_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=RSD_block_size_slider, Path=Value}" TextAlignment="Right"/>
 
@@ -1219,7 +1229,7 @@
                     <RowDefinition Height="3"/>
                     <RowDefinition Height="0.1667*"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer x:Name="src_sv_xy" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="src_sv_xy" Visibility="Collapsed" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
                         <Image x:Name="ortho_xy" Stretch="Uniform"  Grid.Column="0" Grid.Row="0" SizeChanged="ortho_xy_SizeChanged"  MouseDown="ortho_xy_MouseAction"   MouseMove="ortho_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_xy_MouseAction"  MouseMove="line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
@@ -1227,7 +1237,7 @@
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer x:Name="src_sv_zx" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="src_sv_zx" Visibility="Collapsed" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
                         <Image x:Name="ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="ortho_zx_SizeChanged"  MouseDown="ortho_zx_MouseAction"  MouseMove="ortho_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_zx_MouseAction" MouseMove="line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
@@ -1235,7 +1245,7 @@
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer x:Name="src_sv_yz" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="src_sv_yz" Visibility="Collapsed" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center" >
                         <Image x:Name="ortho_yz" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="ortho_yz_SizeChanged"  MouseDown="ortho_yz_MouseAction"  MouseMove="ortho_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="line_yz_MouseAction" MouseMove="line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
@@ -1264,7 +1274,7 @@
                     <RowDefinition Height="3"/>
                     <RowDefinition Height="0.1667*"/>
                 </Grid.RowDefinitions>
-                <ScrollViewer x:Name="dst_sv_xy" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="dst_sv_xy" Visibility="Collapsed" Style="{StaticResource TopLeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
                         <Image x:Name="dst_ortho_xy" Stretch="Uniform"  Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_xy_SizeChanged"  MouseDown="ortho_xy_MouseAction"   MouseMove="ortho_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="dst_line_xy_x" Visibility="Hidden" Stroke="Yellow"  StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_xy_MouseAction"  MouseMove="dst_line_xy_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
@@ -1272,7 +1282,7 @@
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer x:Name="dst_sv_zx" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="dst_sv_zx" Visibility="Collapsed" Style="{StaticResource LeftScrollViewer}" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center">
                         <Image x:Name="dst_ortho_zx" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_zx_SizeChanged"  MouseDown="ortho_zx_MouseAction"  MouseMove="ortho_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="dst_line_zx_z" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_zx_MouseAction" MouseMove="dst_line_zx_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
@@ -1280,7 +1290,7 @@
                     </Grid>
                 </ScrollViewer>
 
-                <ScrollViewer x:Name="dst_sv_yz" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
+                <ScrollViewer x:Name="dst_sv_yz" Visibility="Collapsed" Style="{StaticResource TopScrollViewer}" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Visible" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="40" MinHeight="40" ScrollChanged="ScrollViewer_ScrollChanged">
                     <Grid Height="Auto" Width="Auto" HorizontalAlignment="Center"  VerticalAlignment="Center" >
                         <Image x:Name="dst_ortho_yz" Stretch="Uniform" Grid.Column="0" Grid.Row="0" SizeChanged="dst_ortho_yz_SizeChanged"  MouseDown="ortho_yz_MouseAction"  MouseMove="ortho_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
                         <Line x:Name="dst_line_yz_y" Visibility="Hidden" Stroke="Yellow" StrokeThickness="1" Grid.Column="0" Grid.Row="0" MouseDown="dst_line_yz_MouseAction" MouseMove="dst_line_yz_MouseAction" MouseLeftButtonDown="view_MouseLeftButtonDown" MouseRightButtonDown="view_MouseRightButtonDown"/>
