@@ -156,7 +156,7 @@
     <CudaCompile>
       <AdditionalOptions>-Xcompiler "/wd 4819" %(AdditionalOptions)</AdditionalOptions>
       <Include>%(Include)</Include>
-      <CodeGeneration>%(CodeGeneration)</CodeGeneration>
+      <CodeGeneration>compute_30,sm_30;%(CodeGeneration)</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

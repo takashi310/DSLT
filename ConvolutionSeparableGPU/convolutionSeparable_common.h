@@ -946,7 +946,9 @@ extern "C" DECLSPEC_DLLPORT void segmentsMaskIntGPU(
     int *d_Dst,
 	int *d_Src,
 	int *d_Mask,
-	int n
+	int imageW,
+    int imageH,
+	int imageZ
 );
 
 extern "C" DECLSPEC_DLLPORT void segmentsSumGPU(

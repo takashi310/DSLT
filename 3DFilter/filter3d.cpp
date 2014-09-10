@@ -7,7 +7,8 @@
 #include "filter3d.h"
 #include <queue>
 #include <algorithm>
-#include<cublas.h>
+#include <cublas.h>
+#include <thrust\sort.h>
 
 using namespace cv;
 using namespace multif;
@@ -3274,12 +3275,12 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 		erodeSegmentsSurfaceSphereGPU_v2(wall_rad, imageW, imageH, imageZ);
 		checkCudaErrors( cudaDeviceSynchronize() );
 	}
-
+	
 	copyToDeviceMemFromSuf3D_Int(d_Seg2, imageW, imageH, imageZ);
 	checkCudaErrors( cudaDeviceSynchronize() );
 	destructCuda_Suf3D();
 
-	segmentsMaskIntGPU(d_Seg2, d_Seg2, d_Seg, imageW*imageH*imageZ);
+	segmentsMaskIntGPU(d_Seg2, d_Seg2, d_Seg, imageW, imageH, imageZ);
 	checkCudaErrors( cudaDeviceSynchronize() );
 
 	int *inv_segdata = new int[imageW*imageH*imageZ];
@@ -3295,7 +3296,7 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 		}
 	}
 
-	/*segmentデータベクタからの不正segment要素の削除は行わない*/
+	//segmentデータベクタからの不正segment要素の削除は行わない
 	vector<Box3D>::iterator b_ite = seg_bbox->begin();
 	vector< vector<Point3i> >::iterator s_ite = segments->begin();
 	int i = 0;
@@ -6796,9 +6797,11 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 
 	saveBackupSegmentsData();
 
-	cout << stride << endl;
-	if(stride <= 0.0f)return;
-	
+	float *levels = new float[imageW*imageH*imageZ];
+	memcpy(levels, imgdata, imageW*imageH*imageZ*sizeof(float));
+
+	thrust::sort(levels, levels + imageW*imageH*imageZ);
+
 	vector<char> seg_isSelected(segments->size(), 0);
 	for(unsigned int i = 0; i < selected_segment->size(); i++)seg_isSelected[(*selected_segment)[i]] = 1;
 	for(int i = 0; i < segments->size(); i++){
@@ -6838,61 +6841,68 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg_ref) , imageZ * imageW * imageH * sizeof(int)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
 	
-	int iteration = (int)ceil(1.0f / stride);
+	int lv = 0;
+	int size = imageW*imageH*imageZ;
 	vector<int> before_ites;
 	int base_ite = 0;
-	for(int i = 0; i < iteration; i++){
-		float th = (i + 1) * stride;
-		int inner_ite = 0;
-		bool loop_end = false;
-		do{
-			if(inner_ite >= base_ite){
-				copyToDeviceMemFromSuf3D_Int(d_Seg_ref, imageW, imageH, imageZ);
-				checkCudaErrors( cudaDeviceSynchronize() );
-			}
-			
-			watershed3dGPU(th, imageW, imageH, imageZ);
-			checkCudaErrors( cudaDeviceSynchronize() );
-			
-			if(inner_ite >= base_ite){
-				copyToDeviceMemFromSuf3D_Int(d_Seg, imageW, imageH, imageZ);
-				checkCudaErrors( cudaDeviceSynchronize() );
-				notEqualIntGPU(d_Buffer, d_Seg_ref, d_Seg, imageW, imageH, imageZ);
-				checkCudaErrors( cudaDeviceSynchronize() );
-				if(abs(cublasSasum(imageW * imageH * imageZ, d_Buffer, 1)) <= 0.5f)loop_end = true;
-			}
-			if(i == iteration - 1)loop_end = true;
-			inner_ite++;
-		}while(!loop_end);
-		
-		before_ites.push_back(inner_ite);
-		if(i >= 10){
-			int ite_sum10 = 0;
-			float ite_mean10;
-			float ite_v10 = 0.0f;
-			float ite_stdev10;
-			for(int j = 0; j < 10; j++)ite_sum10 += before_ites[i - j];
-			ite_mean10 = ite_sum10 / 10.0f;
-			for(int j = 0; j < 10; j++)ite_v10 += (before_ites[i - j] - ite_mean10) * (before_ites[i - j] - ite_mean10);
-			ite_v10 /= 10.0f;
-			ite_stdev10 = sqrt(ite_v10);
-
-			int n = 10;
-			for(int j = 0; j < 10; j++){
-				float t = (before_ites[i - j] - ite_mean10) / ite_stdev10;
-				if(t > 2){
-					ite_sum10 -= before_ites[i - j];
-					n--;
+	float th = -FLT_MAX;
+	int i = 0;
+	while(lv < size){
+		if(th < levels[lv]){
+			th = levels[lv];
+			int inner_ite = 0;
+			bool loop_end = false;
+			do{
+				if(inner_ite >= base_ite){
+					copyToDeviceMemFromSuf3D_Int(d_Seg_ref, imageW, imageH, imageZ);
+					checkCudaErrors( cudaDeviceSynchronize() );
 				}
+
+				watershed3dGPU(th, imageW, imageH, imageZ);
+				checkCudaErrors( cudaDeviceSynchronize() );
+
+				if(inner_ite >= base_ite){
+					copyToDeviceMemFromSuf3D_Int(d_Seg, imageW, imageH, imageZ);
+					checkCudaErrors( cudaDeviceSynchronize() );
+					notEqualIntGPU(d_Buffer, d_Seg_ref, d_Seg, imageW, imageH, imageZ);
+					checkCudaErrors( cudaDeviceSynchronize() );
+					if(abs(cublasSasum(imageW * imageH * imageZ, d_Buffer, 1)) <= 0.5f)loop_end = true;
+				}
+				if(lv == size - 1)loop_end = true;
+				inner_ite++;
+			}while(!loop_end);
+
+			before_ites.push_back(inner_ite);
+			if(i >= 10){
+				int ite_sum10 = 0;
+				float ite_mean10;
+				float ite_v10 = 0.0f;
+				float ite_stdev10;
+				for(int j = 0; j < 10; j++)ite_sum10 += before_ites[i - j];
+				ite_mean10 = ite_sum10 / 10.0f;
+				for(int j = 0; j < 10; j++)ite_v10 += (before_ites[i - j] - ite_mean10) * (before_ites[i - j] - ite_mean10);
+				ite_v10 /= 10.0f;
+				ite_stdev10 = sqrt(ite_v10);
+
+				int n = 10;
+				for(int j = 0; j < 10; j++){
+					float t = (before_ites[i - j] - ite_mean10) / ite_stdev10;
+					if(t > 2){
+						ite_sum10 -= before_ites[i - j];
+						n--;
+					}
+				}
+				if(n > 1)base_ite = ite_sum10 / n - 2;
+				else base_ite = 0;
 			}
-			if(n > 1)base_ite = ite_sum10 / n - 2;
-			else base_ite = 0;
+			cout << th << " : " << inner_ite << " : " << base_ite << endl;
+			i++;
 		}
-		cout << th << " : " << inner_ite << " : " << base_ite << endl;
+		lv++;
 	}
 	copyToHostMemFromSuf3D_Int(segdata, imageW, imageH, imageZ);
 
-	destructCuda_Watershed();
+	destructCuda_Suf3D();
 	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_Seg_ref) );
 
@@ -6903,6 +6913,8 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 			}
 		}
 	}
+
+	delete [] levels;
 }
 
 void Filter3D::saveBackupSegmentsData()

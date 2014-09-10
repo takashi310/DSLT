@@ -1361,8 +1361,14 @@ extern "C" __declspec (dllexport) void destructCuda_Suf3D()
 	if(tex_volumeArray)checkCudaErrors(cudaFreeArray(tex_volumeArray));
 	tex_volumeArray = 0;
 
+	if(tex_volumeArray2)checkCudaErrors(cudaFreeArray(tex_volumeArray2));
+	tex_volumeArray2 = 0;
+
 	if(buffer)checkCudaErrors( cudaFree(buffer) );
 	buffer = 0;
+
+	if(bufferI)checkCudaErrors( cudaFree(bufferI) );
+	bufferI = 0;
 }
 
 extern "C" __declspec (dllexport) void initCuda_Suf3D(const float *d_volume, int imageW, int imageH, int imageZ)
@@ -3057,7 +3063,8 @@ extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, i
 	tex_VolumeI.addressMode[2] = cudaAddressModeClamp;
 
 	// bind array to 3D texture
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
+	//checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
+	checkCudaErrors(cudaBindTextureToArray(&tex_VolumeI, tex_volumeArray, &channelDesc));
 
 	checkCudaErrors( cudaMalloc((void **)(&bufferI),   imageZ * imageW * imageH * sizeof(int)) );
 }
@@ -3099,8 +3106,9 @@ extern "C" __declspec (dllexport) void copyToSuf3DFromDeviceMem_Int(int *d_input
 
 	checkCudaErrors(cudaUnbindTexture(tex_VolumeI));
 
+	//checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<int>();
-	checkCudaErrors(cudaBindTextureToArray(tex_VolumeI, tex_volumeArray));
+	checkCudaErrors(cudaBindTextureToArray(&tex_VolumeI, tex_volumeArray, &channelDesc));
 }
 
 
@@ -3242,27 +3250,27 @@ extern "C" __declspec (dllexport) void copyToHostMemFromSuf3D_Int(int *h_output,
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 }
 
-__global__ void segmentsMaskInt_kernel(int *dst, const int *A, const int *B, int n)
+__global__ void segmentsMaskInt_kernel(int *dst, const int *A, const int *B, int imageW, int pitchY, int pitchZ)
 {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    const int id = blockIdx.z * pitchZ + blockIdx.y * pitchY + blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (i < n)
-    {
-        //dst[i] = ((A[i] >= 0) != (B[i] >= 0)) ? ((A[i] >= 0) ? A[i] : B[i]) : -1;
-		dst[i] = ((A[i] >= 0) && (B[i] < 0)) ? A[i] : -1;
-    }
+    //dst[i] = ((A[i] >= 0) != (B[i] >= 0)) ? ((A[i] >= 0) ? A[i] : B[i]) : -1;
+	if(blockIdx.x * blockDim.x + threadIdx.x < imageW)dst[id] = ((A[id] >= 0) && (B[id] < 0)) ? A[id] : -1;
+
 }
 
 extern "C" __declspec (dllexport) void segmentsMaskIntGPU(
     int *d_Dst,
 	int *d_Src,
 	int *d_Mask,
-	int n
+	int imageW,
+    int imageH,
+	int imageZ
 ){
-	int threadsPerBlock = 256;
-    int blocksPerGrid =(n + threadsPerBlock - 1) / threadsPerBlock;//celi( n / threadsPerBlock )
-
-	segmentsMaskInt_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_Dst, d_Src, d_Mask, n);
+	dim3 blocks((imageW + BINALIZE_BLOCKDIM - 1)/BINALIZE_BLOCKDIM, imageH, imageZ);
+    dim3 threads(BINALIZE_BLOCKDIM);
+	
+	segmentsMaskInt_kernel<<<blocks, threads>>>(d_Dst, d_Src, d_Mask, imageW, imageW, imageW*imageH);
 
 };
 

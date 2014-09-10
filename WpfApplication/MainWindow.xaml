@@ -1189,9 +1189,9 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=WS_stride_slider}">Stride</Label>
-                                        <Slider x:Name="WS_stride_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0.001"/>
-                                        <TextBox Name="WS_stride_txt" Width="36" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=WS_stride_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Hidden" Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=WS_stride_slider}">Stride</Label>
+                                        <Slider Visibility="Hidden" x:Name="WS_stride_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0.001"/>
+                                        <TextBox Visibility="Hidden" Name="WS_stride_txt" Width="36" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=WS_stride_slider, Path=Value}" TextAlignment="Right"/>
 
                                     </Grid>
                                     <Grid>
