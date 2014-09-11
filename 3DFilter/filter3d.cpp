@@ -303,6 +303,7 @@ bool Filter3D::set3DImage_MultiTIFF(const char filename[], int channel, int z_sc
 	else curCh = 0;
 	switchZScaling(z_scaling);
 
+	CuDeviceProp();
 	setDevice();
 	if(isEnableGPU){
 		checkCudaErrors( cudaMalloc((void **)(&d_Input),   depth * imageW * imageH * sizeof(float)) );
@@ -6847,8 +6848,9 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	int base_ite = 0;
 	float th = -FLT_MAX;
 	int i = 0;
+	float epsilon = 0.0001f;
 	while(lv < size){
-		if(th < levels[lv]){
+		if(th + epsilon < levels[lv]){
 			th = levels[lv];
 			int inner_ite = 0;
 			bool loop_end = false;
@@ -6871,6 +6873,9 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 				if(lv == size - 1)loop_end = true;
 				inner_ite++;
 			}while(!loop_end);
+
+			erodeSegmentsSurfaceSphereGPU(1, imageW, imageH, imageZ);
+			dilateSegmentsSurfaceSphereGPU(1, imageW, imageH, imageZ);
 
 			before_ites.push_back(inner_ite);
 			if(i >= 10){
