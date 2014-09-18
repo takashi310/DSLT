@@ -5,6 +5,13 @@
 #define DLL_FILTER3D
 
 #include "filter3d.h"
+#include <opencv2/opencv.hpp>
+#include <cuda_runtime.h>
+#include <helper_functions.h>  // helper for shared functions common to CUDA SDK samples
+#include <helper_cuda.h>       // helper functions for CUDA error checking and initialization
+#include "convolutionSeparable_common.h"
+#include "tiffdecorder.h"
+#include "multi_tiff.h"
 #include <queue>
 #include <algorithm>
 #include <cublas.h>
@@ -62,6 +69,11 @@ Filter3D::Filter3D()
 	imgdata = NULL;
 	bufdata = NULL;
 	dstdata = NULL;
+	dsltbk = NULL;
+	dsltbk_lati = NULL;
+	dsltbk_rad = -1;
+	dsltbk_d = -1;
+	dslt_type = -1;
 	//selectdata = NULL;
 	segdata = NULL;
 	hmap = NULL;
@@ -116,6 +128,11 @@ void Filter3D::clear()
 		SAFE_DELETE_ARRAY(imgdata);
 		SAFE_DELETE_ARRAY(bufdata);
 		SAFE_DELETE_ARRAY(dstdata);
+		SAFE_DELETE_ARRAY(dsltbk);
+		SAFE_DELETE_ARRAY(dsltbk_lati);
+		dsltbk_rad = -1;
+		dsltbk_d = -1;
+		dslt_type = -1;
 		//SAFE_DELETE_ARRAY(selectdata);
 		SAFE_DELETE_ARRAY(segdata);
 		SAFE_DELETE_ARRAY(hmap);
@@ -258,6 +275,8 @@ bool Filter3D::set3DImage_MultiTIFF(const char filename[], int channel, int z_sc
 		imgdata = new float[imageW*imageH*depth];
 		bufdata = new float[imageW*imageH*depth];
 		dstdata = new float[imageW*imageH*depth];
+		dsltbk = new float[imageW*imageH*depth];
+		dsltbk_lati = new float[imageW*imageH*depth];
 		//selectdata = new float[imageW*imageH*depth];
 		segdata = new int[imageW*imageH*depth];
 		hmap = new float[imageW*imageH];
@@ -384,6 +403,10 @@ void Filter3D::applyChanges()
 	if(isEmpty)return;
 	memcpy(imgdata, dstdata, imageW*imageH*imageZ*sizeof(float));
 	memcpy(rawdata_resized + imageW*imageH*imageZ*curCh, dstdata, imageW*imageH*imageZ*sizeof(float));
+
+	dsltbk_rad = -1;
+	dsltbk_d = -1;
+	dslt_type = -1;
 	
 	if(isEnableGPU)checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 }
@@ -2814,11 +2837,23 @@ void Filter3D::allAngleLinearAdaptiveThresholdGPU(int blocksize, int angle_d, fl
 {
 	if(isEmpty || blocksize <= 0 || angle_d < 1)return;
 
-	//allAngleLinearConvolutionMinGPU(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
-	allAngleLinearConvolutionMinGPU_geodesic(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
-	//allAngleLinearConvolutionMinGPU_geodesic_v2(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
-	//allAngleLinearConvolutionMinGPU_geodesic_v3(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
+	if(blocksize != dsltbk_rad || angle_d != dsltbk_d || thresholdType != dslt_type){
+		//allAngleLinearConvolutionMinGPU(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
+		allAngleLinearConvolutionMinGPU_geodesic(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
+		//allAngleLinearConvolutionMinGPU_geodesic_v2(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
+		//allAngleLinearConvolutionMinGPU_geodesic_v3(dstdata, imgdata, blocksize, angle_d, thresholdType, bufdata, NULL);
 
+		dsltbk_rad = blocksize;
+		dsltbk_d = angle_d;
+		dslt_type = thresholdType;
+		memcpy(dsltbk, dstdata, imageW*imageH*imageZ*sizeof(float));
+		memcpy(dsltbk_lati, bufdata, imageW*imageH*imageZ*sizeof(float));
+	}
+	else{
+		memcpy(dstdata, dsltbk, imageW*imageH*imageZ*sizeof(float));
+		memcpy(bufdata, dsltbk_lati, imageW*imageH*imageZ*sizeof(float));
+	}
+		
 	checkCudaErrors( cudaMemcpy(d_Buffer, bufdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 	checkCudaErrors( cudaMemcpy(d_Output, dstdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 	
@@ -6064,6 +6099,9 @@ void Filter3D::applyBC(float bc_max, float bc_min, bool dmap_isEnable, float d_c
 	}
 	memcpy(dstdata, imgdata, imageW*imageH*imageZ*sizeof(float));
 	memcpy(rawdata_resized + imageW*imageH*imageZ*curCh, imgdata, imageW*imageH*imageZ*sizeof(float));
+	dsltbk_rad = -1;
+	dsltbk_d = -1;
+	dslt_type = -1;
 
 	if(isEnableGPU)checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 }
@@ -6848,7 +6886,7 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	int base_ite = 0;
 	float th = -FLT_MAX;
 	int i = 0;
-	float epsilon = 0.0001f;
+	float epsilon = 1.0/256.0f;
 	while(lv < size){
 		if(th + epsilon < levels[lv]){
 			th = levels[lv];
@@ -6950,4 +6988,22 @@ void Filter3D::setCroppingParams(bool isEnable, bool useHmap, int upper, int low
 	crop_lower = lower;
 	crop_border_xy_thickness = border;
 	//cout << crop_isEnable << " : " << crop_useHmap << " : " << crop_upper << " : " << crop_lower << endl;
+}
+
+bool Filter3D::savebufXY(const char *fname)
+{
+	Mat tmpXY = Mat(imageH, imageW, CV_8UC3, bufXY);
+	return imwrite(fname, tmpXY);
+}
+
+bool Filter3D::savebufYZ(const char *fname)
+{
+	Mat tmpYZ = Mat(imageH, imageZ, CV_8UC3, bufYZ);
+	return imwrite(fname, tmpYZ);
+}
+
+bool Filter3D::savebufZX(const char *fname)
+{
+	Mat tmpZX = Mat(imageZ, imageW, CV_8UC3, bufZX);
+	return imwrite(fname, tmpZX);
 }

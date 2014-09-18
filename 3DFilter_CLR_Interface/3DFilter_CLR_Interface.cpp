@@ -137,39 +137,36 @@ bool Class1::saveSrc2DImage(System::String ^filename)
 	unsigned int h, r, g, b;
 	float imax;
 	
-	if(!flt3d->hmapEmpty && hmap_use){
+	if(!flt3d->hmap_empty() && hmap_use){
 		if(proj_mode == C1_NORMAL_PROJECTION){
-			flt3d->heightMapBasedProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, -1);
+			flt3d->heightMapBasedProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, -1);
 		}
 		else{
-			if(dc_isEnable && !flt3d->dmapEmpty)flt3d->heightMapSimpleProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
+			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->imgdata, bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 
 	string fnameYZ = c_str;
 	size_t found = fnameYZ.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameYZ.insert(found, "YZ");
-	flt3d->setBufferYZ(flt3d->imgdata, currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	string fnameZX = c_str;
 	found = fnameZX.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameZX.insert(found, "ZX");
-	flt3d->setBufferZX(flt3d->imgdata, currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
-	Mat tmpXY = Mat(flt3d->imageH, flt3d->imageW, CV_8UC3, flt3d->bufXY);
-	Mat tmpYZ = Mat(flt3d->imageH, flt3d->imageZ, CV_8UC3, flt3d->bufYZ);
-	Mat tmpZX = Mat(flt3d->imageZ, flt3d->imageW, CV_8UC3, flt3d->bufZX);
-	return (imwrite(c_str, tmpXY) && imwrite(fnameYZ, tmpYZ) && imwrite(fnameZX, tmpZX));
+	return (flt3d->savebufXY(c_str) && flt3d->savebufYZ(fnameYZ.c_str()) && flt3d->savebufZX(fnameZX.c_str()));
 	/*
 	
 	flt3d->setXPlotGraph(currentX, currentY, currentZ, bc_max, bc_min, dc_isEnable, dmap_coefficient, dmap_order);
-	Mat graph = Mat(flt3d->graphH, flt3d->graphW, CV_8UC3, flt3d->graph);
+	Mat graph = Mat(flt3d->getgraphH(), flt3d->getgraphW(), CV_8UC3, flt3d->getgraph());
 	cvtColor(graph, graph, CV_RGB2BGR);
 	return imwrite(c_str, graph);
 	*/
@@ -181,35 +178,32 @@ bool Class1::saveDst2DImage(System::String ^filename)
 	marshal_context^ ctx = gcnew marshal_context();
 	c_str = ctx->marshal_as<const char *>(filename);
 
-	if(!flt3d->hmapEmpty && hmap_use){
+	if(!flt3d->hmap_empty() && hmap_use){
 		if(proj_mode == C1_NORMAL_PROJECTION){
-			flt3d->heightMapBasedProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, 0.5f);
+			flt3d->heightMapBasedProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, 0.5f);
 		}
 		else{
-			if(dc_isEnable && !flt3d->dmapEmpty)flt3d->heightMapSimpleProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
+			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->dstdata, bc_max, bc_min, currentZ, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
 	}
 	
 	string fnameYZ = c_str;
 	size_t found = fnameYZ.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameYZ.insert(found, "YZ");
-	flt3d->setBufferYZ(flt3d->dstdata, currentX, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
 
 	string fnameZX = c_str;
 	found = fnameZX.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameZX.insert(found, "ZX");
-	flt3d->setBufferZX(flt3d->dstdata, currentY, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
 	
-	Mat tmpXY = Mat(flt3d->imageH, flt3d->imageW, CV_8UC3, flt3d->bufXY);
-	Mat tmpYZ = Mat(flt3d->imageH, flt3d->imageZ, CV_8UC3, flt3d->bufYZ);
-	Mat tmpZX = Mat(flt3d->imageZ, flt3d->imageW, CV_8UC3, flt3d->bufZX);
-	return (imwrite(c_str, tmpXY) && imwrite(fnameYZ, tmpYZ) && imwrite(fnameZX, tmpZX));
+	return (flt3d->savebufXY(c_str) && flt3d->savebufYZ(fnameYZ.c_str()) && flt3d->savebufZX(fnameZX.c_str()));
 }
 
 bool Class1::saveHeightMap(System::String ^filename)
@@ -232,24 +226,24 @@ bool Class1::readHeightMap(System::String ^filename)
 
 bool Class1::empty()
 {
-	return flt3d->isEmpty;
+	return flt3d->empty();
 }
 
 void Class1::setX(int value)
 {
-	if((value < 0) || (value >= flt3d->imageW) || (flt3d->isEmpty))return;
+	if((value < 0) || (value >= flt3d->getWidth()) || (flt3d->empty()))return;
 	currentX = value;
 }
 
 void Class1::setY(int value)
 {
-	if((value < 0) || (value >= flt3d->imageH) || (flt3d->isEmpty))return;
+	if((value < 0) || (value >= flt3d->getHeight()) || (flt3d->empty()))return;
 	currentY = value;
 }
 
 void Class1::setZ(int value)
 {
-	if((value < 0) || (value >= flt3d->imageZ) || (flt3d->isEmpty))return;
+	if((value < 0) || (value >= flt3d->getDepth()) || (flt3d->empty()))return;
 	currentZ = value;
 }
 
@@ -344,14 +338,14 @@ void Class1::getImageSize([Runtime::InteropServices::Out] int %imgX,
 						  [Runtime::InteropServices::Out] int %imgY,
 						  [Runtime::InteropServices::Out] int %imgZ)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		imgX = -1;
 		imgY = -1;
 		imgZ = -1;
 	}
-	imgX = flt3d->imageW;
-	imgY = flt3d->imageH;
-	imgZ = flt3d->imageZ;
+	imgX = flt3d->getWidth();
+	imgY = flt3d->getHeight();
+	imgZ = flt3d->getDepth();
 }
 
 unsigned long Class1::getImageDataArrayXY([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -362,32 +356,32 @@ unsigned long Class1::getImageDataArrayXY([Runtime::InteropServices::Out] IntPtr
 	unsigned int h, r, g, b;
 	float imax;
 
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
 		height = -1;
 		return 0;
 	}
-	if(!flt3d->hmapEmpty && hmap_use){
+	if(!flt3d->hmap_empty() && hmap_use){
 		if(proj_mode == C1_NORMAL_PROJECTION){
-			flt3d->heightMapBasedProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, -1);
+			flt3d->heightMapBasedProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, -1);
 		}
 		else{
-			if(dc_isEnable && !flt3d->dmapEmpty)flt3d->heightMapSimpleProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->imgdata, hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
+			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
 		}
 	}
 	else{
 		//printf("SimpleProjection Called\n");
-		flt3d->simpleProjection(flt3d->imgdata, bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
-	//ptr = IntPtr(&(flt3d->imgdata[currentZ*flt3d->imageW*flt3d->imageH]));
-	ptr = IntPtr(flt3d->bufXY);
+	//ptr = IntPtr(&(flt3d->getImgData()[currentZ*flt3d->getWidth()*flt3d->getHeight()]));
+	ptr = IntPtr(flt3d->getbufXY());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageW;
-	height = flt3d->imageH;
-	return flt3d->imageW*flt3d->imageH*bytesperpixel;
+	width = flt3d->getWidth();
+	height = flt3d->getHeight();
+	return flt3d->getWidth()*flt3d->getHeight()*bytesperpixel;
 }
 
 unsigned long Class1::getImageDataArrayYZ([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -397,7 +391,7 @@ unsigned long Class1::getImageDataArrayYZ([Runtime::InteropServices::Out] IntPtr
 {
 	unsigned int h, r, g, b;
 
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -405,13 +399,13 @@ unsigned long Class1::getImageDataArrayYZ([Runtime::InteropServices::Out] IntPtr
 		return 0;
 	}
 
-	flt3d->setBufferYZ(flt3d->imgdata, currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
-	ptr = IntPtr(flt3d->bufYZ);
+	ptr = IntPtr(flt3d->getbufYZ());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageZ;
-	height = flt3d->imageH;
-	return flt3d->imageZ*flt3d->imageH*bytesperpixel;
+	width = flt3d->getDepth();
+	height = flt3d->getHeight();
+	return flt3d->getDepth()*flt3d->getHeight()*bytesperpixel;
 }
 
 unsigned long Class1::getImageDataArrayZX([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -421,7 +415,7 @@ unsigned long Class1::getImageDataArrayZX([Runtime::InteropServices::Out] IntPtr
 {
 	unsigned int h, r, g, b;
 
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -429,13 +423,13 @@ unsigned long Class1::getImageDataArrayZX([Runtime::InteropServices::Out] IntPtr
 		return 0;
 	}
 	
-	flt3d->setBufferZX(flt3d->imgdata, currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
-	ptr = IntPtr(flt3d->bufZX);
+	ptr = IntPtr(flt3d->getbufZX());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageW;
-	height = flt3d->imageZ;
-	return flt3d->imageW*flt3d->imageZ*bytesperpixel;
+	width = flt3d->getWidth();
+	height = flt3d->getDepth();
+	return flt3d->getWidth()*flt3d->getDepth()*bytesperpixel;
 }
 
 
@@ -444,31 +438,31 @@ unsigned long Class1::getDstImageDataArrayXY([Runtime::InteropServices::Out] Int
 											 [Runtime::InteropServices::Out] long %width,
 											 [Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
 		height = -1;
 		return 0;
 	}
-	if(!flt3d->hmapEmpty && hmap_use){
+	if(!flt3d->hmap_empty() && hmap_use){
 		if(proj_mode == C1_NORMAL_PROJECTION){
-			flt3d->heightMapBasedProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, 0.5f);
+			flt3d->heightMapBasedProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, 0.5f);
 		}
 		else{
-			if(dc_isEnable && !flt3d->dmapEmpty)flt3d->heightMapSimpleProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->dstdata, hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
+			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->dstdata, bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
-	//ptr = IntPtr(&(flt3d->dstdata[currentZ*flt3d->imageW*flt3d->imageH]));
-	ptr = IntPtr(flt3d->bufXY);
+	//ptr = IntPtr(&(flt3d->getDstData()[currentZ*flt3d->getWidth()*flt3d->getHeight()]));
+	ptr = IntPtr(flt3d->getbufXY());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageW;
-	height = flt3d->imageH;
-	return flt3d->imageW*flt3d->imageH*bytesperpixel;
+	width = flt3d->getWidth();
+	height = flt3d->getHeight();
+	return flt3d->getWidth()*flt3d->getHeight()*bytesperpixel;
 }
 
 unsigned long Class1::getDstImageDataArrayYZ([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -476,7 +470,7 @@ unsigned long Class1::getDstImageDataArrayYZ([Runtime::InteropServices::Out] Int
 											 [Runtime::InteropServices::Out] long %width,
 											 [Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -484,13 +478,13 @@ unsigned long Class1::getDstImageDataArrayYZ([Runtime::InteropServices::Out] Int
 		return 0;
 	}
 	
-	flt3d->setBufferYZ(flt3d->dstdata, currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
-	ptr = IntPtr(flt3d->bufYZ);
+	ptr = IntPtr(flt3d->getbufYZ());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageZ;
-	height = flt3d->imageH;
-	return flt3d->imageZ*flt3d->imageH*bytesperpixel;
+	width = flt3d->getDepth();
+	height = flt3d->getHeight();
+	return flt3d->getDepth()*flt3d->getHeight()*bytesperpixel;
 }
 
 unsigned long Class1::getDstImageDataArrayZX([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -498,20 +492,20 @@ unsigned long Class1::getDstImageDataArrayZX([Runtime::InteropServices::Out] Int
 											 [Runtime::InteropServices::Out] long %width,
 											 [Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
 		height = -1;
 		return 0;
 	}
-	flt3d->setBufferZX(flt3d->dstdata, currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
-	ptr = IntPtr(flt3d->bufZX);
+	ptr = IntPtr(flt3d->getbufZX());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageW;
-	height = flt3d->imageZ;
-	return flt3d->imageW*flt3d->imageZ*bytesperpixel;
+	width = flt3d->getWidth();
+	height = flt3d->getDepth();
+	return flt3d->getWidth()*flt3d->getDepth()*bytesperpixel;
 }
 
 unsigned long Class1::getHeightMapDataArrayXY([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -519,7 +513,7 @@ unsigned long Class1::getHeightMapDataArrayXY([Runtime::InteropServices::Out] In
 											  [Runtime::InteropServices::Out] long %width,
 											  [Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -529,11 +523,11 @@ unsigned long Class1::getHeightMapDataArrayXY([Runtime::InteropServices::Out] In
 	
 	flt3d->setHeightMapToBufferXY();
 
-	ptr = IntPtr(flt3d->bufXY);
+	ptr = IntPtr(flt3d->getbufXY());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->imageW;
-	height = flt3d->imageH;
-	return flt3d->imageW*flt3d->imageH*bytesperpixel;
+	width = flt3d->getWidth();
+	height = flt3d->getHeight();
+	return flt3d->getWidth()*flt3d->getHeight()*bytesperpixel;
 }
 
 unsigned long Class1::getXPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -541,7 +535,7 @@ unsigned long Class1::getXPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 									[Runtime::InteropServices::Out] long %width,
 									[Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -549,11 +543,11 @@ unsigned long Class1::getXPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 		return 0;
 	}
 	flt3d->setXPlotGraph(currentX, currentY, currentZ, bc_max, bc_min, dc_isEnable, dmap_coefficient, dmap_order);
-	ptr = IntPtr(flt3d->graph);
+	ptr = IntPtr(flt3d->getgraph());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->graphW;
-	height = flt3d->graphH;
-	return flt3d->graphW*flt3d->graphH*bytesperpixel;
+	width = flt3d->getgraphW();
+	height = flt3d->getgraphH();
+	return flt3d->getgraphW()*flt3d->getgraphH()*bytesperpixel;
 }
 
 unsigned long Class1::getYPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -561,7 +555,7 @@ unsigned long Class1::getYPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 									[Runtime::InteropServices::Out] long %width,
 									[Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -569,11 +563,11 @@ unsigned long Class1::getYPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 		return 0;
 	}
 	flt3d->setYPlotGraph(currentX, currentY, currentZ, bc_max, bc_min, dc_isEnable, dmap_coefficient, dmap_order);
-	ptr = IntPtr(flt3d->graph);
+	ptr = IntPtr(flt3d->getgraph());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->graphW;
-	height = flt3d->graphH;
-	return flt3d->graphW*flt3d->graphH*bytesperpixel;
+	width = flt3d->getgraphW();
+	height = flt3d->getgraphH();
+	return flt3d->getgraphW()*flt3d->getgraphH()*bytesperpixel;
 }
 
 unsigned long Class1::getZPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
@@ -581,7 +575,7 @@ unsigned long Class1::getZPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 									[Runtime::InteropServices::Out] long %width,
 									[Runtime::InteropServices::Out] long %height)
 {
-	if(flt3d->isEmpty){
+	if(flt3d->empty()){
 		ptr = IntPtr(0);
 		bytesperpixel = -1;
 		width = -1;
@@ -589,18 +583,18 @@ unsigned long Class1::getZPlotGraph([Runtime::InteropServices::Out] IntPtr %ptr,
 		return 0;
 	}
 	flt3d->setZPlotGraph(currentX, currentY, currentZ, bc_max, bc_min, dc_isEnable, dmap_coefficient, dmap_order);
-	ptr = IntPtr(flt3d->graph);
+	ptr = IntPtr(flt3d->getgraph());
 	bytesperpixel = sizeof(unsigned char)*3;
-	width = flt3d->graphW;
-	height = flt3d->graphH;
-	return flt3d->graphW*flt3d->graphH*bytesperpixel;
+	width = flt3d->getgraphW();
+	height = flt3d->getgraphH();
+	return flt3d->getgraphW()*flt3d->getgraphH()*bytesperpixel;
 }
 
 void Class1::AdaptiveThreshold3DLineKernels(int blocksize, int angle_d, float factor_C_Z, float constC, int kernelType)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->allAngleLinearAdaptiveThresholdGPU(blocksize, angle_d, constC*C_factor, constC*factor_C_Z*C_factor, kernelType);
+	if(flt3d->isAvilableGPU())flt3d->allAngleLinearAdaptiveThresholdGPU(blocksize, angle_d, constC*C_factor, constC*factor_C_Z*C_factor, kernelType);
 	//flt3d->drawCircle(3.141592653589793238462 / 2.0, 3.141592653589793238462 / 4.0, blocksize);
 	//flt3d->drawLineSegments(blocksize, angle_d);
 	//flt3d->drawIcoSphere(blocksize, angle_d);
@@ -618,7 +612,7 @@ void Class1::segmentation_SobelLikeADTH(int blocksize,
 								int closing)
 {
 	if(isEmpty)return;
-	if(flt3d->isEnableGPU){
+	if(flt3d->isAvilableGPU()){
 		flt3d->segmentation_SobelLikeADTH(blocksize,
 										  angle_d, 
 										  factor_C_Z, 
@@ -632,7 +626,7 @@ void Class1::segmentation_SobelLikeADTH(int blocksize,
 		flt3d->saveBackupSegmentsData();
 	}
 /*	
-	if(flt3d->isEnableGPU)flt3d->segmentation_SobelLikeADTH(blocksize,
+	if(flt3d->isAvilableGPU())flt3d->segmentation_SobelLikeADTH(blocksize,
 															angle_d, 
 															factor_C_Z, 
 															minC*C_factor, 
@@ -647,14 +641,14 @@ void Class1::segmentation_SobelLikeADTH(int blocksize,
 															bc_max,
 															bc_min);
 */	
-	//if(flt3d->isEnableGPU && closing == 0)flt3d->adjustAirspacesBrightness(0, blocksize, angle_d, minC*C_factor, maxC*C_factor, 100, -1*interval*C_factor, factor_C_Z, kernelType);
+	//if(flt3d->isAvilableGPU() && closing == 0)flt3d->adjustAirspacesBrightness(0, blocksize, angle_d, minC*C_factor, maxC*C_factor, 100, -1*interval*C_factor, factor_C_Z, kernelType);
 }
 
 void Class1::hMinimaTransform3D(float h, int chk_interval, bool copyToHostMemory)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->hMinimaTransform3D_GPU(h, chk_interval, true);
+	if(flt3d->isAvilableGPU())flt3d->hMinimaTransform3D_GPU(h, chk_interval, true);
 	
 }
 
@@ -662,7 +656,7 @@ void Class1::segmentation_hMinimaTransform(float minh, float maxh, float interva
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU){
+	if(flt3d->isAvilableGPU()){
 		flt3d->segmentation_hMinimaTransform(minh, maxh, interval, min_segVol, minInvalidStructureArea, closing);
 		flt3d->saveBackupSegmentsData();
 	}
@@ -670,13 +664,13 @@ void Class1::segmentation_hMinimaTransform(float minh, float maxh, float interva
 
 void Class1::segmentation_FloodFill(float th_val, int connectType, int minSize)
 {
-	flt3d->binarySegmentationLow(flt3d->dstdata, th_val, connectType, minSize, true);
+	flt3d->binarySegmentationLow(flt3d->getDstData(), th_val, connectType, minSize, true);
 	flt3d->saveBackupSegmentsData();
 }
 
 void Class1::segmentation_FloodFill(float th_val, int connectType, int minSize, int noise_th, int wall_th, int minInvalidStructureVol, bool saveValidSegments, bool saveInvalidSegments)
 {
-	flt3d->binarySegmentationLow(flt3d->dstdata, th_val, connectType, minSize, true, noise_th, wall_th, minInvalidStructureVol, saveValidSegments, saveInvalidSegments);
+	flt3d->binarySegmentationLow(flt3d->getDstData(), th_val, connectType, minSize, true, noise_th, wall_th, minInvalidStructureVol, saveValidSegments, saveInvalidSegments);
 	flt3d->saveBackupSegmentsData();
 }
 
@@ -684,11 +678,11 @@ void Class1::AdaptiveThreshold3D(int blocksize, float constC, int thresholdType,
 {
 	if(isEmpty)return;
 	
-	if(flt3d->isEnableGPU)flt3d->AdaptiveThreshold3D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
+	if(flt3d->isAvilableGPU())flt3d->AdaptiveThreshold3D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
 	else flt3d->AdaptiveThreshold3D_CPU(blocksize, constC*C_factor, thresholdType);
 	
 /*
-	if(flt3d->isEnableGPU)flt3d->segmentation_SobelLikeADTH(blocksize,
+	if(flt3d->isAvilableGPU())flt3d->segmentation_SobelLikeADTH(blocksize,
 															4,
 															0.2f,
 															constC,
@@ -710,7 +704,7 @@ void Class1::AdaptiveThreshold2D(int blocksize, float constC, int thresholdType,
 {
 	if(isEmpty)return;
 	
-	if(flt3d->isEnableGPU)flt3d->AdaptiveThreshold2D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
+	if(flt3d->isAvilableGPU())flt3d->AdaptiveThreshold2D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
 	else flt3d->AdaptiveThreshold2D_CPU(blocksize, constC*C_factor, thresholdType);
 	
 }
@@ -719,12 +713,12 @@ void Class1::threshold3D(int blocksize, float constC, int thresholdType, bool co
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->threshold3D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
+	if(flt3d->isAvilableGPU())flt3d->threshold3D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
 	else flt3d->threshold3D_CPU(blocksize, constC*C_factor, thresholdType);
 
 	//flt3d->resetSegmentColors();
 
-	//flt3d->fillingHoles(flt3d->dstdata, 12, 4, 0);
+	//flt3d->fillingHoles(flt3d->getDstData(), 12, 4, 0);
 	//flt3d->estimateWallThickness(1);
 	
 }
@@ -733,13 +727,13 @@ void Class1::threshold2D(int blocksize, float constC, int thresholdType, bool co
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->threshold2D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
+	if(flt3d->isAvilableGPU())flt3d->threshold2D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
 	else flt3d->threshold2D_CPU(blocksize, constC*C_factor, thresholdType);
 
-	//flt3d->binarySegmentationLow(flt3d->dstdata, 0.1f, SEGMENT_CONNECT6, 500, true, 4, 8, 1000, true, true);
-	//flt3d->binarySegmentationLow(flt3d->dstdata, 0.1f, SEGMENT_CONNECT6, 500, true);
+	//flt3d->binarySegmentationLow(flt3d->getDstData(), 0.1f, SEGMENT_CONNECT6, 500, true, 4, 8, 1000, true, true);
+	//flt3d->binarySegmentationLow(flt3d->getDstData(), 0.1f, SEGMENT_CONNECT6, 500, true);
 
-	//if(flt3d->isEnableGPU)flt3d->openingSpherical(blocksize, true);
+	//if(flt3d->isAvilableGPU())flt3d->openingSpherical(blocksize, true);
 
 	//flt3d->saveRGBimageSeries("SegmentedImage", bc_max, bc_min);
 }
@@ -748,15 +742,15 @@ void Class1::smooth3D(int blocksize, int filterType, bool copyToHostMemory)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->smoothing3D_GPU(blocksize, filterType, copyToHostMemory);
-	//if(flt3d->isEnableGPU)flt3d->smoothing2D_GPU(blocksize, filterType, copyToHostMemory);
+	if(flt3d->isAvilableGPU())flt3d->smoothing3D_GPU(blocksize, filterType, copyToHostMemory);
+	//if(flt3d->isAvilableGPU())flt3d->smoothing2D_GPU(blocksize, filterType, copyToHostMemory);
 }
 
 void Class1::dilation3D(int radius, int filterShape, bool copyToHostMemory)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU){
+	if(flt3d->isAvilableGPU()){
 		
 		if(filterShape == C1_FLT_SPHERE)flt3d->dilationSpherical(radius, copyToHostMemory);
 		if(filterShape == C1_FLT_CUBE)  flt3d->dilationCubic(radius, copyToHostMemory);
@@ -770,7 +764,7 @@ void Class1::erosion3D(int radius, int filterShape, bool copyToHostMemory)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU){
+	if(flt3d->isAvilableGPU()){
 		if(filterShape == C1_FLT_SPHERE)flt3d->erosionSpherical(radius, copyToHostMemory);
 		if(filterShape == C1_FLT_CUBE)  flt3d->erosionCubic(radius, copyToHostMemory);
 	}
@@ -780,7 +774,7 @@ void Class1::generateHeightMap(int blocksize_xy, int blocksize_z, float th, int 
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->generateHeightMapGPU(blocksize_xy, blocksize_z, th, thresholdType, smoothLv);
+	if(flt3d->isAvilableGPU())flt3d->generateHeightMapGPU(blocksize_xy, blocksize_z, th, thresholdType, smoothLv);
 	else flt3d->generateHeightMapCPU(blocksize_xy, blocksize_z, th, thresholdType);
 }
 
@@ -795,7 +789,7 @@ void Class1::generateDepthMap()
 {
 	if(isEmpty)return;
 
-	if(flt3d->isEnableGPU)flt3d->generateDepthMapGPU();
+	if(flt3d->isAvilableGPU())flt3d->generateDepthMapGPU();
 	else flt3d->generateDepthMap();
 }
 /*

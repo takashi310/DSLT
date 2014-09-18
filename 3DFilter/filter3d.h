@@ -2,15 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 #pragma warning (push)
 #pragma warning( disable : 4819 )
-#include <opencv2/opencv.hpp>
-#include <cuda_runtime.h>
-#include <helper_functions.h>  // helper for shared functions common to CUDA SDK samples
-#include <helper_cuda.h>       // helper functions for CUDA error checking and initialization
-#include "tiffdecorder.h"
-#include "multi_tiff.h"
-#include "convolutionSeparable_common.h"
 #pragma warning (pop)
 
 #ifndef FILTER3D_H
@@ -47,7 +41,20 @@
 #define SC_LANCZOS2 2
 #define SC_LANCZOS3 3
 
+namespace cv {
+
+	template<typename _Tp> class Point3_;
+	typedef Point3_<int> Point3i;
+	typedef Point3_<float> Point3f;
+
+}
+
+namespace multif {
+	class MultiTiffIO;
+}
+
 namespace TestGPUclass {
+
 	struct Box3D{
 		int x;
 		int y;
@@ -60,6 +67,48 @@ namespace TestGPUclass {
 	class DECLSPEC_DLLPORT Filter3D
 	{
 	private:
+		float *rawdata;
+		float *rawdata_resized;
+		float *imgdata;
+		float *bufdata;
+		float *dstdata;
+		float *dsltbk;
+		float *dsltbk_lati;
+		float dsltbk_rad;
+		int dsltbk_d;
+		int dslt_type;
+		//float *selectdata;
+		float *hmap;
+		float *hmap_normalized;
+		float *hmbproj;
+		float *dmap;
+		float dmax;
+		int *segdata;
+		int brush_size;
+		cv::Point3f *normals;
+		float *areas;
+		unsigned char *bufXY;
+		unsigned char *bufZX;
+		unsigned char *bufYZ;
+		unsigned int imageW;
+		unsigned int imageH;
+		unsigned int imageZ;
+		unsigned int nSlices;
+		unsigned int nChannels;
+		unsigned char *graph_tmpX;
+		unsigned char *graph_tmpY;
+		unsigned char *graph_tmpZ;
+		unsigned char *graph;
+		unsigned int graphW;
+		unsigned int graphH;
+		bool isEmpty;
+		bool hmapEmpty;
+		bool dmapEmpty;
+		bool isEnableGPU;
+		int zScaling;
+		float zScaleFactor;
+		unsigned int curCh;
+
 		multif::MultiTiffIO *tifio;
 		float *d_Input;
 		float *d_Output;
@@ -94,45 +143,35 @@ namespace TestGPUclass {
 		void maximumSphereFilter(int radius, float *d_1, float *d_buf, int width, int height, int depth, int roi_x, int roi_y, int roi_z, int roi_w, int roi_h, int roi_d);
 		void minimumSphereFilter(int radius, float *d_1, float *d_buf, int width, int height, int depth, int roi_x, int roi_y, int roi_z, int roi_w, int roi_h, int roi_d);
 		bool isSelectedSegment(int id);
+
+		double F(double x, double y, cv::Point3f p00, cv::Point3f p10, cv::Point3f p01, cv::Point3f p11);
+		double simpe2(double **f, const int m, const int n, double h1, double h2);
+
 	public:
-		float *rawdata;
-		float *rawdata_resized;
-		float *imgdata;
-		float *bufdata;
-		float *dstdata;
-		//float *selectdata;
-		float *hmap;
-		float *hmap_normalized;
-		float *hmbproj;
-		float *dmap;
-		float dmax;
-		int *segdata;
-		int brush_size;
-		cv::Point3f *normals;
-		float *areas;
-		unsigned char *bufXY;
-		unsigned char *bufZX;
-		unsigned char *bufYZ;
-		unsigned int imageW;
-		unsigned int imageH;
-		unsigned int imageZ;
-		unsigned int nSlices;
-		unsigned int nChannels;
-		unsigned char *graph_tmpX;
-		unsigned char *graph_tmpY;
-		unsigned char *graph_tmpZ;
-		unsigned char *graph;
-		unsigned int graphW;
-		unsigned int graphH;
-		bool isEmpty;
-		bool hmapEmpty;
-		bool dmapEmpty;
-		bool isEnableGPU;
-		int zScaling;
-		float zScaleFactor;
-		unsigned int curCh;
+		
 		Filter3D();
 		~Filter3D();
+
+		bool empty(){return isEmpty;}
+		bool isAvilableGPU(){return isEnableGPU;}
+		bool hmap_empty(){return hmapEmpty;}
+		bool dmap_empty(){return dmapEmpty;}
+		unsigned int getWidth(){return imageW;}
+		unsigned int getHeight(){return imageH;}
+		unsigned int getDepth(){return imageZ;}
+		unsigned char *getbufXY(){return bufXY;}
+		unsigned char *getbufZX(){return bufZX;}
+		unsigned char *getbufYZ(){return bufYZ;}
+		unsigned char *getgraph(){return graph;}
+		unsigned int getgraphW(){return graphW;}
+		unsigned int getgraphH(){return graphH;}
+		float *getImgData(){return imgdata;}
+		float *getDstData(){return dstdata;}
+
+		bool savebufXY(const char *fname);
+		bool savebufYZ(const char *fname);
+		bool savebufZX(const char *fname);
+
 		void setDevice();
 		static void getGaussianFilter1D(float filter[], int ksize);
 		static void getMeanFilter1D(float filter[], int ksize);
@@ -231,9 +270,7 @@ namespace TestGPUclass {
 		//void copySelectionSliceZX(int src, int dst);
 
 		void calcHmapArea(int reso);
-		double F(double x, double y, cv::Point3f p00, cv::Point3f p10, cv::Point3f p01, cv::Point3f p11);
-		double simpe2(double **f, const int m, const int n, double h1, double h2);
-
+		
 		void saveRGBimageSeries(const char *fname, float bc_max, float bc_min);
 
 		void drawCircle(float longi, float lati, int radius);
