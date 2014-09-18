@@ -70,7 +70,6 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\Property Sheets\libtiff.props" />
     <Import Project="..\..\..\Property Sheets\opencv_x64.props" />
     <Import Project="..\..\..\Property Sheets\cuda5_x64.props" />
   </ImportGroup>
