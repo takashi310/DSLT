@@ -43,7 +43,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -65,11 +65,12 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\Property Sheets\opencv_x64.props" />
-    <Import Project="..\..\..\Property Sheets\libtiff.props" />
     <Import Project="..\..\..\Property Sheets\cuda5d_x64.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\Property Sheets\opencv_x86.props" />
+    <Import Project="..\..\..\Property Sheets\cuda5_x86.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -87,6 +88,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.dll</TargetExt>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -133,13 +138,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)MultiTiffIO;$(SolutionDir)ConvolutionSeparableGPU;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>cublas.lib;MultiTiffIO.lib;ConvolutionSeparableGPU.lib;opencv_core245.lib;opencv_imgproc245.lib;opencv_highgui245.lib;opencv_objdetect245.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)lib\$(PlatformName)\$(TargetName).lib"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

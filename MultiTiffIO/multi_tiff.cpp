@@ -7,6 +7,8 @@
 
 #include "multi_tiff.h"
 
+#include <tiffio.h>
+
 using namespace multif;
 
 MultiTiffIO::MultiTiffIO(const char filename[])
@@ -19,7 +21,7 @@ MultiTiffIO::~MultiTiffIO()
 	if(image)TIFFClose(image);
 }
 
-int MultiTiffIO::GetField(uint32 tag, ...)
+int MultiTiffIO::GetField(unsigned int tag, ...)
 {
 	int return_val;
 	va_list ap;
@@ -36,7 +38,7 @@ int MultiTiffIO::GetField(uint32 tag, ...)
 	return return_val;
 }
 
-uint16 MultiTiffIO::GetNumberOfDirectories()
+unsigned short MultiTiffIO::GetNumberOfDirectories()
 {
 	if(image == NULL){
 		printf("Image data is empty\n");

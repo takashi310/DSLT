@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
     <CLRSupport>true</CLRSupport>
@@ -70,8 +70,6 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\Property Sheets\opencv_x64.props" />
-    <Import Project="..\..\..\Property Sheets\cuda5_x64.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -84,6 +82,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.dll</TargetExt>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -127,12 +129,17 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(SolutionDir)MultiTiffIO;$(SolutionDir)ConvolutionSeparableGPU;$(SolutionDir)3DFilter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies />
+      <AdditionalDependencies>3DFilter.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -149,7 +156,8 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)lib\$(PlatformName)\$(TargetName).lib"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

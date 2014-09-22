@@ -242,7 +242,7 @@ void Filter3D::setDevice()
 bool Filter3D::set3DImage_MultiTIFF(const char filename[], int channel, int z_scaling)
 {
 	char *tmpdata;
-	uint16	samplesperpixel, bitspersample;
+	unsigned short	samplesperpixel, bitspersample;
 
 	clear();
 	

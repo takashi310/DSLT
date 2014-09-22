@@ -1,5 +1,3 @@
-#include <tiffio.h>
-
 #ifndef MULTI_TIFF_H
 #define MULTI_TIFF_H
 
@@ -9,6 +7,9 @@
 #define DECLSPEC_DLLPORT	__declspec(dllimport)
 #endif
 
+struct tiff;
+typedef tiff TIFF;
+
 namespace multif{
 
 	class DECLSPEC_DLLPORT MultiTiffIO{
@@ -17,8 +18,8 @@ namespace multif{
 	public:
 		MultiTiffIO(const char filename[]);
 		~MultiTiffIO();
-		int GetField(uint32 tag, ...);
-		uint16 GetNumberOfDirectories();
+		int GetField(unsigned int tag, ...);
+		unsigned short GetNumberOfDirectories();
 		void GetChSeparatedImageData();
 		unsigned long GetDataSize();
 		bool GetImageData(char data[]);
