@@ -43,6 +43,12 @@ Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "Setup_x86", "Setup_x86\Setu
 		{1D3446FA-6126-4642-9720-6DC3A1EDBB1F} = {1D3446FA-6126-4642-9720-6DC3A1EDBB1F}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EBD34D48-8C9D-4424-AB81-D59A55E24690}"
+	ProjectSection(SolutionItems) = preProject
+		license.rtf = license.rtf
+		license.txt = license.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CD_ROM|Any CPU = CD_ROM|Any CPU
