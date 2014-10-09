@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<!-- Select a Product Configuration -->
+		<InstallShieldProductConfiguration>Express</InstallShieldProductConfiguration>
+		<!-- Select a Visual Studio Configuration / InstallShield Release -->
+		<Configuration>Debug</Configuration>
+		<InstallShieldRelease>$(Configuration)</InstallShieldRelease>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- The InstallShieldProject item selects the project to build -->
+		<InstallShieldProject Include="$(MSBuildProjectDirectory)\$(MSBuildProjectName).isl"/>
+		<!-- The InstallShieldReleaseFlags sets Release Flags -->
+		<!--<InstallShieldReleaseFlags Include=""/>-->
+		<!-- The InstallShieldMergeModulePath specifies what directories are
+		searched for Merge Modules -->
+		<!--<InstallShieldMergeModulePath Include=""/>-->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The ProjectReference items refer to any Visual Studio solutions you want to automatically probe for Project Output Groups.  -->
+	</ItemGroup>
+	<ItemGroup>
+		<!-- The TaggedOutputs items allow you to explicitly add extra files to output groups. Each item must include both Name and OutputGroup, as well as TargetPath metadata values. -->
+		<!--<TaggedOutputs Include="C:\My Test Exe.exe">
+			<Name>My Test Project</Name>
+			<OutputGroup>Primary output</OutputGroup>
+			<TargetPath>My Test Exe.exe</TargetPath>
+		</TaggedOutputs> -->
+	</ItemGroup>
+	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2013Limited\InstallShield.targets"/>
+	<ItemGroup>
+		<ProjectReference Include="..\3DFilter\3DFilter.vcxproj">
+			<Name>3DFilter</Name>
+			<Project>{0178A9C0-55DE-400A-B3B1-7EB1A6E581B7}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\3DFilter_CLR_Interface\3DFilter_CLR_Interface.vcxproj">
+			<Name>3DFilter_CLR_Interface</Name>
+			<Project>{6A0703C8-4175-43AB-BAE4-FD2F7FA075AE}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\ConverterSet\ConverterSet.csproj">
+			<Name>ConverterSet</Name>
+			<Project>{EF838710-8EFD-41C0-9A07-0DDBFA87D184}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\ConvolutionSeparableGPU\ConvolutionSeparableGPU.vcxproj">
+			<Name>ConvolutionSeparableGPU</Name>
+			<Project>{F3D4CC0E-9938-4F3D-8C69-E720B1130877}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\MultiTiffIO\MultiTiffIO.vcxproj">
+			<Name>MultiTiffIO</Name>
+			<Project>{3E0243EE-F542-4C67-9B4F-443175D60841}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\WpfApplication\WpfApplication.csproj">
+			<Name>WpfApplication</Name>
+			<Project>{1D3446FA-6126-4642-9720-6DC3A1EDBB1F}</Project>
+		</ProjectReference>
+	</ItemGroup>
+</Project>

@@ -935,13 +935,13 @@ namespace WpfApplication1
 			var paramList = new Dictionary<String, DependencyObject>();
 
 			LogicalTreeElementList.EnumerateVisualChildren(parent, GetParams, paramList);
-
-			Console.WriteLine(string.Format("FilterType: {0}",	((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
-			Console.WriteLine(string.Format("BlockSize: {0}",	((Slider)paramList["AT_block_size_slider"]).Value));
-			Console.WriteLine(string.Format("C: {0}",			((Slider)paramList["AT_C_slider"]).Value));
-
+            
+			//Console.WriteLine(string.Format("FilterType: {0}",	((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
+			//Console.WriteLine(string.Format("BlockSize: {0}",	((Slider)paramList["AT_block_size_slider"]).Value));
+			//Console.WriteLine(string.Format("C: {0}",			((Slider)paramList["AT_C_slider"]).Value));
+            
 			c1.AdaptiveThreshold3D((int)((Slider)paramList["AT_block_size_slider"]).Value,
-								   (float)((Slider)paramList["AT_C_slider"]).Value,
+								   (float)((Slider)paramList["AT_C_slider"]).Value * -1,
 								   ((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/,
 								   true );
 			updateImg();
@@ -961,12 +961,12 @@ namespace WpfApplication1
 
 			LogicalTreeElementList.EnumerateVisualChildren(parent, GetParams, paramList);
 
-			Console.WriteLine(string.Format("FilterType: {0}",	((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
-			Console.WriteLine(string.Format("BlockSize: {0}",	((Slider)paramList["AT_block_size_slider"]).Value));
-			Console.WriteLine(string.Format("C: {0}",			((Slider)paramList["AT_C_slider"]).Value));
+			//Console.WriteLine(string.Format("FilterType: {0}",	((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
+			//Console.WriteLine(string.Format("BlockSize: {0}",	((Slider)paramList["AT_block_size_slider"]).Value));
+			//Console.WriteLine(string.Format("C: {0}",			((Slider)paramList["AT_C_slider"]).Value));
 
 			c1.AdaptiveThreshold2D((int)((Slider)paramList["AT_block_size_slider"]).Value,
-								   (float)((Slider)paramList["AT_C_slider"]).Value,
+                                   (float)((Slider)paramList["AT_C_slider"]).Value * -1,
 								   ((RadioButton)paramList["AT_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/,
 								   true );
 			updateImg();
@@ -986,17 +986,17 @@ namespace WpfApplication1
 			var paramList = new Dictionary<String, DependencyObject>();
 
 			LogicalTreeElementList.EnumerateVisualChildren(parent, GetParams, paramList);
-
-			Console.WriteLine(string.Format("FilterType: {0}",	 ((RadioButton)paramList["ADTHLK_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
-			Console.WriteLine(string.Format("BlockSize: {0}",	 ((Slider)paramList["ADTHLK_block_size_slider"]).Value));
-			Console.WriteLine(string.Format("Level: {0}",		 ((Slider)paramList["ADTHLK_lv_slider"]).Value));
-			Console.WriteLine(string.Format("Z_Correction: {0}", ((Slider)paramList["ADTHLK_Z_Correction_slider"]).Value));
-			Console.WriteLine(string.Format("C: {0}",			 ((Slider)paramList["ADTHLK_C_slider"]).Value));
+            
+			//Console.WriteLine(string.Format("FilterType: {0}",	 ((RadioButton)paramList["ADTHLK_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
+			//Console.WriteLine(string.Format("BlockSize: {0}",	 ((Slider)paramList["ADTHLK_block_size_slider"]).Value));
+			//Console.WriteLine(string.Format("Level: {0}",		 ((Slider)paramList["ADTHLK_lv_slider"]).Value));
+			//Console.WriteLine(string.Format("Z_Correction: {0}", ((Slider)paramList["ADTHLK_Z_Correction_slider"]).Value));
+			//Console.WriteLine(string.Format("C: {0}",			 ((Slider)paramList["ADTHLK_C_slider"]).Value));
 
 			c1.AdaptiveThreshold3DLineKernels((int)((Slider)paramList["ADTHLK_block_size_slider"]).Value,
 											  (int)((Slider)paramList["ADTHLK_lv_slider"]).Value,
 											  (float)((Slider)paramList["ADTHLK_Z_Correction_slider"]).Value,
-											  (float)((Slider)paramList["ADTHLK_C_slider"]).Value,
+											  (float)((Slider)paramList["ADTHLK_C_slider"]).Value * -1,
 											  ((RadioButton)paramList["ADTHLK_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/);
 			updateImg();
 		}
@@ -1022,23 +1022,23 @@ namespace WpfApplication1
 			}
 			*/
 
-			Console.WriteLine(string.Format("FilterType: {0}", ((RadioButton)paramList["SGL_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
-			Console.WriteLine(string.Format("BlockSize: {0}", ((Slider)paramList["SGL_block_size_slider"]).Value));
-			Console.WriteLine(string.Format("Level: {0}", ((Slider)paramList["SGL_lv_slider"]).Value));
-			Console.WriteLine(string.Format("Z_Correction: {0}", ((Slider)paramList["SGL_Z_Correction_slider"]).Value));
-			Console.WriteLine(string.Format("minC: {0}", ((Slider)paramList["SGL_minC_slider"]).Value));
-			Console.WriteLine(string.Format("maxC: {0}", ((Slider)paramList["SGL_maxC_slider"]).Value));
-			Console.WriteLine(string.Format("Interval: {0}", ((Slider)paramList["SGL_interval_slider"]).Value));
-			Console.WriteLine(string.Format("minVol: {0}", ((Slider)paramList["SGL_minVol_slider"]).Value));
-			Console.WriteLine(string.Format("Tolerance: {0}", ((Slider)paramList["SGL_minInvalidStructureArea_slider"]).Value));
-			Console.WriteLine(string.Format("Closing: {0}", ((Slider)paramList["SGL_Closing_slider"]).Value));
+			//Console.WriteLine(string.Format("FilterType: {0}", ((RadioButton)paramList["SGL_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/));
+			//Console.WriteLine(string.Format("BlockSize: {0}", ((Slider)paramList["SGL_block_size_slider"]).Value));
+			//Console.WriteLine(string.Format("Level: {0}", ((Slider)paramList["SGL_lv_slider"]).Value));
+			//Console.WriteLine(string.Format("Z_Correction: {0}", ((Slider)paramList["SGL_Z_Correction_slider"]).Value));
+			//Console.WriteLine(string.Format("minC: {0}", ((Slider)paramList["SGL_minC_slider"]).Value));
+			//Console.WriteLine(string.Format("maxC: {0}", ((Slider)paramList["SGL_maxC_slider"]).Value));
+			//Console.WriteLine(string.Format("Interval: {0}", ((Slider)paramList["SGL_interval_slider"]).Value));
+			//Console.WriteLine(string.Format("minVol: {0}", ((Slider)paramList["SGL_minVol_slider"]).Value));
+			//Console.WriteLine(string.Format("Tolerance: {0}", ((Slider)paramList["SGL_minInvalidStructureArea_slider"]).Value));
+			//Console.WriteLine(string.Format("Closing: {0}", ((Slider)paramList["SGL_Closing_slider"]).Value));
 
 			c1.segmentation_SobelLikeADTH((int)((Slider)paramList["SGL_block_size_slider"]).Value,
 										  (int)((Slider)paramList["SGL_lv_slider"]).Value,
 										  (float)((Slider)paramList["SGL_Z_Correction_slider"]).Value,
-										  (float)((Slider)paramList["SGL_minC_slider"]).Value,
-										  (float)((Slider)paramList["SGL_maxC_slider"]).Value,
-										  (float)((Slider)paramList["SGL_interval_slider"]).Value,
+										  (float)((Slider)paramList["SGL_minC_slider"]).Value * -1,
+										  (float)((Slider)paramList["SGL_maxC_slider"]).Value * -1,
+										  (float)((Slider)paramList["SGL_interval_slider"]).Value * -1,
 										  ((RadioButton)paramList["SGL_mean_rb"]).IsChecked.Value ? 1/*mean*/ : 0/*gaussian*/,
 										  (int)((Slider)paramList["SGL_minVol_slider"]).Value,
 										  (int)((Slider)paramList["SGL_minInvalidStructureArea_slider"]).Value,
@@ -1108,6 +1108,17 @@ namespace WpfApplication1
 
 			updateImg();
 		}
+
+        private void SGT_apply_button_Click(object sender, RoutedEventArgs e)
+        {
+            c1.segmentation_Thresholding((float)SGT_minth_slider.Value,
+                                         (float)SGT_maxth_slider.Value,
+                                         (float)SGT_interval_slider.Value,
+                                         (int)SGT_minVol_slider.Value,
+                                         (int)SGT_minInvalidStructureArea_slider.Value,
+                                         (int)SGT_Closing_slider.Value);
+            updateImg();
+        }
 
 		private void FF_apply_button_Click(object sender, RoutedEventArgs e)
 		{
@@ -1341,6 +1352,9 @@ namespace WpfApplication1
 				case "cbi_Smoothing":
 					VisualizeListBoxItem(lbi_Smoothing);
 					break;
+                case "cbi_Threshold":
+                    VisualizeListBoxItem(lbi_Threshold);
+                    break;
 				case "cbi_Dilation":
 					VisualizeListBoxItem(lbi_Dilation);
 					break;
@@ -1362,6 +1376,9 @@ namespace WpfApplication1
 				case "cbi_segHMT":
 					VisualizeListBoxItem(lbi_Segmentation_H_minima);
 					break;
+                case "cbi_segTH":
+                    VisualizeListBoxItem(lbi_Segmentation_TH);
+                    break;
 				case "cbi_segFF":
 					VisualizeListBoxItem(lbi_Segmentation_FloodFill);
 					break;
@@ -1541,6 +1558,12 @@ namespace WpfApplication1
         {
             c1.watershed3D((float)WS_stride_slider.Value);
             //WS_stride_slider.Value += 0.001f;
+            updateImg();
+        }
+
+        private void TH_apply_button_Click(object sender, RoutedEventArgs e)
+        {
+            c1.thresholding((float)TH_th_slider.Value);
             updateImg();
         }
 
@@ -1937,6 +1960,8 @@ namespace WpfApplication1
            
         }
 
+       
+        
 
     }
 }

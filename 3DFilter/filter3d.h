@@ -187,7 +187,7 @@ namespace TestGPUclass {
 		//bool saveDst2DImage(const char filename[]);
 		
 		void AdaptiveThreshold3D_GPU(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
-		void threshold3D_GPU(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
+		void threshold_GPU(float th);
 		void AdaptiveThreshold2D_GPU(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
 		void threshold2D_GPU(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
 		void smoothing3D_GPU(int blocksize, int filterType, bool copyToHostMemory);
@@ -226,6 +226,7 @@ namespace TestGPUclass {
 		void segmentation(int blocksize, int angle_d, float factor_C_Z, float minC, float maxC, float interval, int kernelType, int min_segVol, int minInvalidStructureArea, int hole_size);
 		void segmentation_SobelLikeADTH(int blocksize, int angle_d, float factor_C_Z, float minC, float maxC, float interval, int kernelType, int minInvalidStructureArea, int closing);
 		void segmentation_hMinimaTransform(float minh, float maxh, float interval, int min_segVol, int minInvalidStructureArea, int closing);
+		void segmentation_Threshold(float minth, float maxth, float interval, int min_segVol, int minInvalidStructureArea, int closing);
 		void adjustAirspacesBrightness(int ar_dataCh, int blocksize, int angle_d, float ar_minC, float ar_maxC, int iteration, float targetC, float factor_C_Z, int kernelType);
 
 		/*Debug—p*/

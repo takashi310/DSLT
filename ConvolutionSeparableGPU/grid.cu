@@ -3056,7 +3056,7 @@ extern "C" __declspec (dllexport) void erodeSegmentsSurfaceSphereGPU_v2(
 	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
-extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, int imageW, int imageH, int imageZ)
+extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, int imageW, int imageH, int imageZ, enum cudaMemcpyKind kind)
 {
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -3071,7 +3071,7 @@ extern "C" __declspec (dllexport) void initCuda_Suf3D_Int(const int *d_volume, i
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)d_volume, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
 	copyParams.dstArray = tex_volumeArray;
 	copyParams.extent   = volumeSize;
-	copyParams.kind     = cudaMemcpyDeviceToDevice;
+	copyParams.kind     = kind;
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 
 	// set texture parameters
@@ -3187,7 +3187,7 @@ extern "C" __declspec (dllexport) void watershed3dGPU(
 	copyToSuf3DFromDeviceMem_Int(bufferI, imageW, imageH, imageZ);
 }
 
-extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, const float *h_src, int imageW, int imageH, int imageZ)
+extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, const float *h_src, int imageW, int imageH, int imageZ, enum cudaMemcpyKind kind)
 {
 	cudaExtent volumeSize;
 	volumeSize.width  = imageW;
@@ -3202,7 +3202,7 @@ extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, con
 	copyParams.srcPtr   = make_cudaPitchedPtr((void *)h_src, volumeSize.width*sizeof(float), volumeSize.width, volumeSize.height);
 	copyParams.dstArray = tex_volumeArray2;
 	copyParams.extent   = volumeSize;
-	copyParams.kind     = cudaMemcpyHostToDevice;
+	copyParams.kind     = kind;
 	checkCudaErrors(cudaMemcpy3D(&copyParams));
 
 	// set texture parameters
@@ -3223,7 +3223,7 @@ extern "C" __declspec (dllexport) void initCuda_Watershed(const int *h_seed, con
 	copyParams_suf.srcPtr   = make_cudaPitchedPtr((void *)h_seed, volumeSize.width*sizeof(int), volumeSize.width, volumeSize.height);
 	copyParams_suf.dstArray = tex_volumeArray;
 	copyParams_suf.extent   = volumeSize;
-	copyParams_suf.kind     = cudaMemcpyHostToDevice;
+	copyParams_suf.kind     = kind;
 	checkCudaErrors(cudaMemcpy3D(&copyParams_suf));
 
 	// set texture parameters

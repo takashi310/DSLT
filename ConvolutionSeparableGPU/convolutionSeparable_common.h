@@ -924,7 +924,7 @@ extern "C" DECLSPEC_DLLPORT void erodeSegmentsSurfaceSphereGPU_v2(
 	int imageZ
 );
 
-extern "C" DECLSPEC_DLLPORT void initCuda_Suf3D_Int(const int *d_volume, int imageW, int imageH, int imageZ);
+extern "C" DECLSPEC_DLLPORT void initCuda_Suf3D_Int(const int *d_volume, int imageW, int imageH, int imageZ, enum cudaMemcpyKind kind);
 extern "C" DECLSPEC_DLLPORT void copyToDeviceMemFromSuf3D_Int(int *d_output, int imageW, int imageH, int imageZ);
 extern "C" DECLSPEC_DLLPORT void copyToSuf3DFromDeviceMem_Int(int *d_input, int imageW, int imageH, int imageZ);
 
@@ -935,7 +935,7 @@ extern "C" DECLSPEC_DLLPORT void watershed3dGPU(
 	int imageZ
 );
 
-extern "C" DECLSPEC_DLLPORT void initCuda_Watershed(const int *h_seed, const float *h_src, int imageW, int imageH, int imageZ);
+extern "C" DECLSPEC_DLLPORT void initCuda_Watershed(const int *h_seed, const float *h_src, int imageW, int imageH, int imageZ, enum cudaMemcpyKind kind);
 extern "C" DECLSPEC_DLLPORT void destructCuda_Watershed();
 extern "C" DECLSPEC_DLLPORT void copyToHostMemFromSuf3D_Int(int *h_output, int imageW, int imageH, int imageZ);
 

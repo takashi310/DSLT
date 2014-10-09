@@ -768,77 +768,13 @@ void Filter3D::AdaptiveThreshold3D_GPU(int blocksize, float constC, int threshol
 	delete[] h_Kernel;
 }
 
-void Filter3D::threshold3D_GPU(int blocksize, float constC, int thresholdType, bool copyToHostMemory)
+void Filter3D::threshold_GPU(float th)
 {
-	int kernel_length = blocksize * 2 + 1;
-
 	if(isEmpty)return;
 
-	float *h_Kernel = new float[kernel_length];
-
-	if(thresholdType == FILTER_GAUSSIAN)getGaussianFilter1D(h_Kernel, kernel_length);
-	if(thresholdType == FILTER_MEAN)getMeanFilter1D(h_Kernel, kernel_length);
-
-	if(blocksize <= 8){
-		setConvolutionKernel8(h_Kernel, blocksize);
-		checkCudaErrors( cudaDeviceSynchronize() );
-
-		convolutionRowsGPU8(d_Buffer, d_Tmp, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionColumnsGPU8(d_Output, d_Buffer, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionZColumnsGPU8(d_Buffer, d_Output, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		thresholdGPU(d_Output, d_Buffer, imageW, imageH, imageZ, constC);
-
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-	else if(blocksize <= 16){
-		setConvolutionKernel16(h_Kernel, blocksize);
-		checkCudaErrors( cudaDeviceSynchronize() );
-
-		convolutionRowsGPU16(d_Buffer, d_Tmp, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionColumnsGPU16(d_Output, d_Buffer, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionZColumnsGPU16(d_Buffer, d_Output, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		thresholdGPU(d_Output, d_Buffer, imageW, imageH, imageZ, constC);
-
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-	else if(blocksize <= 32){
-		setConvolutionKernel32(h_Kernel, blocksize);
-		checkCudaErrors( cudaDeviceSynchronize() );
-
-		convolutionRowsGPU32(d_Buffer, d_Tmp, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionColumnsGPU32(d_Output, d_Buffer, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionZColumnsGPU32(d_Buffer, d_Output, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		thresholdGPU(d_Output, d_Buffer, imageW, imageH, imageZ, constC);
-
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-	else if(blocksize <= 64){
-		setConvolutionKernel64(h_Kernel, blocksize);
-		checkCudaErrors( cudaDeviceSynchronize() );
-
-		convolutionRowsGPU64(d_Buffer, d_Tmp, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionColumnsGPU64(d_Output, d_Buffer, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		convolutionZColumnsGPU64(d_Buffer, d_Output, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		thresholdGPU(d_Output, d_Buffer, imageW, imageH, imageZ, constC);
-
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-
-	if(copyToHostMemory)checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
-	
-	delete[] h_Kernel;
+	checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
+	thresholdGPU(d_Output, d_Input, imageW, imageH, imageZ, th);
+	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
 }
 
 void Filter3D::smoothing3D_GPU(int blocksize, int filterType, bool copyToHostMemory)
@@ -1128,478 +1064,10 @@ void Filter3D::minimumSphereFilter(int radius, float *d_1, float *d_buf, int wid
 void Filter3D::dilationSpherical(int radius, bool copyToHostMemory){
 	
 	checkCudaErrors( cudaMemcpy(d_Output, imgdata, imageW * imageH * imageZ * sizeof(float), cudaMemcpyHostToDevice) );
-	
 	maximumSphereFilter(radius, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
-	/*
-	for(int z = 0; z < imageZ; z++){
-		for(int y = 0; y < imageH; y++){
-			for(int x = 0; x < imageW; x++){
-				segdata[z*imageH*imageW + y*imageW + x] = z;
-			}
-		}
-	}
-	*/
-	int *d_int;
-	checkCudaErrors( cudaMalloc((void **)(&d_int) , imageZ * imageW * imageH * sizeof(int)) );
-	checkCudaErrors( cudaMemcpy(d_int, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
 
-	cudaEvent_t start, stop;
-
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	checkCudaErrors( cudaDeviceSynchronize() );
-	cudaEventRecord(start, 0);
-
-	initCuda_Suf3D_Int(d_int, imageW, imageH, imageZ);
-
-	copyToDeviceMemFromSuf3D_Int(d_int, imageW, imageH, imageZ);
-
-	int iterations = 1;
-	float *d_1 = d_Output;
-	float *d_2 = d_Buffer;
-	int *d_Grid;
-	int gridsize;
-	int *grid;
-	for(int i = -1; i < iterations; i++){
-		//i == -1 -- warmup iteration
-		if(i == 0){
-			checkCudaErrors( cudaDeviceSynchronize() );
-			cudaEventRecord(start, 0);
-		}
-		//maximumSphereFilter(radius, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
-		/*
-		maximumFilterRows1ROIGPU(d_2, d_1, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		swap(d_1, d_2);
-		maximumFilterColumns1ROIGPU(d_2, d_1, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		swap(d_1, d_2);
-		maximumFilterZColumns1ROIGPU(d_2, d_1, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		swap(d_1, d_2);
-		*/
-		
-		//checkCudaErrors( cudaMalloc((void **)(&d_Grid) , imageZ * imageW * imageH * 3 * sizeof(int)) );
-		//generateGridDataIntGPU(d_Grid, gridsize, true, d_int, imageW, imageH, imageZ, 33, 33, 33, 1, 1, 1, 0, 0, 0);
-
-		/*
-		grid = new int[gridsize];
-		checkCudaErrors( cudaMemcpy(grid, d_Grid, gridsize * sizeof(int), cudaMemcpyDeviceToHost) );
-		for(unsigned int j = 0; j < 32*32*32; j++)printf("%d ", grid[j]);
-		putchar('\n');
-		for(unsigned int i = 0; i < gridsize/(32*32*32); i++)printf("%d %d\n", grid[i*32*32*32], grid[(i+1)*32*32*32-1]);
-		delete [] grid;
-		*/
-		checkCudaErrors( cudaDeviceSynchronize() );
-		//checkCudaErrors( cudaFree(d_Grid) );
-	}
-
-	if(radius >= 4){
-		checkCudaErrors( cudaDeviceSynchronize() );
-		for(int i = 0; i < radius / 4; i++){
-			dilateSegmentsSurfaceSphereGPU(4, imageW, imageH, imageZ);
-			checkCudaErrors( cudaDeviceSynchronize() );
-		}
-		if(radius % 4 > 0){
-			dilateSegmentsSurfaceSphereGPU(radius % 4, imageW, imageH, imageZ);
-			checkCudaErrors( cudaDeviceSynchronize() );
-		}
-	}
-	else {
-		dilateSegmentsSurfaceSphereGPU(radius, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-
-	if(radius >= 4){
-		checkCudaErrors( cudaDeviceSynchronize() );
-		for(int i = 0; i < radius / 4; i++){
-			erodeSegmentsSurfaceSphereGPU(4, imageW, imageH, imageZ);
-			checkCudaErrors( cudaDeviceSynchronize() );
-		}
-		if(radius % 4 > 0){
-			erodeSegmentsSurfaceSphereGPU(radius % 4, imageW, imageH, imageZ);
-			checkCudaErrors( cudaDeviceSynchronize() );
-		}
-	}
-	else {
-		erodeSegmentsSurfaceSphereGPU(radius, imageW, imageH, imageZ);
-		checkCudaErrors( cudaDeviceSynchronize() );
-	}
-
-	copyToDeviceMemFromSuf3D_Int(d_int, imageW, imageH, imageZ);
-	checkCudaErrors( cudaDeviceSynchronize() );
-	
-	cudaEventRecord(stop, 0);
-	cudaEventSynchronize(stop);
-	float elapsedTime;
-	cudaEventElapsedTime(&elapsedTime, start, stop);
-	double gpuTime = 0.001 * elapsedTime / (double)iterations;
-	printf("dilationSpherical, Throughput = %.4f MPixels/sec, Time = %.5f s, Size = %u Pixels, NumDevsUsed = %i, Workgroup = %u\n\n", 
-		(1.0e-6 * (double)(imageW * imageH * imageZ)/ gpuTime), gpuTime, (imageW * imageH * imageZ), 1, 0);
-	checkCudaErrors( cudaMemcpy(segdata, d_int, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
-
-	//checkCudaErrors( cudaMemcpy(d_Output, d_Buffer, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToDevice) );
-	
 	if(copyToHostMemory)checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
 
-	destructCuda_Suf3D();
-	checkCudaErrors( cudaFree(d_int) );
-	
-	#define KERNEL_RADIUS 6
-	#define KERNEL_LENGTH (2 * KERNEL_RADIUS + 1)
-	float kernel[KERNEL_LENGTH*KERNEL_LENGTH*KERNEL_LENGTH];
-	//int _radius = 2;
-	ofstream ofs("code.txt");
-	stringstream ss;
-	
-	for(int z = 0; z < KERNEL_LENGTH; z++){
-		for(int y = 0; y < KERNEL_LENGTH; y++){
-			for(int x = 0; x < KERNEL_LENGTH; x++){
-				if( sqrt( (x - KERNEL_RADIUS)*(x - KERNEL_RADIUS) + (y - KERNEL_RADIUS)*(y - KERNEL_RADIUS) + (z - KERNEL_RADIUS)*(z - KERNEL_RADIUS) ) <= radius )
-					kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] = 1.0f;
-				else kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] = 0.0f;
-				printf("%.1f ", kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x]);
-				/*
-				if(kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] > 0.0f){
-					int dx = x - KERNEL_RADIUS;
-					int dy = y - KERNEL_RADIUS;
-					int dz = z - KERNEL_RADIUS;
-					bool bchk = false;
-					ss.str("");
-					ss << "\ttmp = ";
-					ss << "(" << fixed << setprecision(1);
-					if(dz > 0){
-						ss << "z+" << (float)abs(dz) << "f <= DATA_D-1.0f";
-						bchk = true;
-					}
-					if(dz < 0){
-						ss << "z-" << (float)abs(dz) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dy > 0){
-						if(bchk)ss << " && ";
-						ss << "y+" << (float)abs(dy) << "f <= DATA_H-1.0f";
-						bchk = true;
-					}
-					if(dy < 0){
-						if(bchk)ss << " && ";
-						ss << "y-" << (float)abs(dy) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dx > 0){
-						if(bchk)ss << " && ";
-						ss << "x+" << (float)abs(dx) << "f <= DATA_W-1.0f";
-						bchk = true;
-					}
-					if(dx < 0){
-						if(bchk)ss << " && ";
-						ss << "x-" << (float)abs(dx) << "f >= 0.0f";
-						bchk = true;
-					}
-					ss << ")";
-
-					int maxlen = strlen("\ttmp = (x+1.0f <= DATA_W-1.0f && y+1.0f <= DATA_H-1.0f&& z+1.0f <= DATA_D-1.0f)");
-					int indent = maxlen - ss.str().length() + 1;
-					for(int i = 0; i < indent; i++)ss << " ";
-					
-					if(bchk)ss << " ? ";
-					else ss << "   ";
-
-					ss << "tex3D(tex_Volume, x";
-					if(dx >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dx);
-
-					ss << " + 0.5f, y";
-					if(dy >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dy);
-
-					ss << " + 0.5f, z";
-					if(dz >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dz);
-
-					ss << " + 0.5f)";
-
-					if(bchk)ss << " : FLT_MIN";
-					else ss << "          ";
-
-					ss << "; max = (max < tmp) ? tmp : max;\n";
-
-					ofs << ss.str().c_str();
-				}
-				*/
-				/*
-				if(kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] > 0.0f){
-					int dx = x - KERNEL_RADIUS;
-					int dy = y - KERNEL_RADIUS;
-					int dz = z - KERNEL_RADIUS;
-					bool bchk = false;
-					ss.str("");
-					ss << "\tif(" << fixed << setprecision(1);
-					if(dz > 0){
-						ss << "z+" << (float)abs(dz) << "f <= DATA_D-1.0f";
-						bchk = true;
-					}
-					if(dz < 0){
-						ss << "z-" << (float)abs(dz) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dy > 0){
-						if(bchk)ss << " && ";
-						ss << "y+" << (float)abs(dy) << "f <= DATA_H-1.0f";
-						bchk = true;
-					}
-					if(dy < 0){
-						if(bchk)ss << " && ";
-						ss << "y-" << (float)abs(dy) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dx > 0){
-						if(bchk)ss << " && ";
-						ss << "x+" << (float)abs(dx) << "f <= DATA_W-1.0f";
-						bchk = true;
-					}
-					if(dx < 0){
-						if(bchk)ss << " && ";
-						ss << "x-" << (float)abs(dx) << "f >= 0.0f";
-						bchk = true;
-					}
-					ss << ")";
-
-					int maxlen = strlen("\tif(x+1.0f <= DATA_W-1.0f && y+1.0f <= DATA_H-1.0f&& z+1.0f <= DATA_D-1.0f)");
-					int indent = maxlen - ss.str().length() + 1;
-					for(int i = 0; i < indent; i++)ss << " ";
-					
-					if(bchk)ss << " {";
-					else ss << "  ";
-
-					ss << "tmp = ";
-
-					ss << "tex3D(tex_Volume, x";
-					if(dx >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dx);
-
-					ss << " + 0.5f, y";
-					if(dy >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dy);
-
-					ss << " + 0.5f, z";
-					if(dz >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dz);
-
-					ss << " + 0.5f)";
-
-					ss << "; max = (max < tmp) ? tmp : max;";
-
-					if(bchk)ss << "}\n";
-					else ss << "\n";
-
-					ofs << ss.str().c_str();
-				}
-				*/
-				/*
-				if(kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] > 0.0f){
-					int dx = x - KERNEL_RADIUS;
-					int dy = y - KERNEL_RADIUS;
-					int dz = z - KERNEL_RADIUS;
-					bool bchk = false;
-					ss.str("");
-					ss << "\tif(" << fixed << setprecision(1);
-					if(dz > 0){
-						ss << "z+" << (float)abs(dz) << "f <= DATA_D-1.0f";
-						bchk = true;
-					}
-					if(dz < 0){
-						ss << "z-" << (float)abs(dz) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dy > 0){
-						if(bchk)ss << " && ";
-						ss << "y+" << (float)abs(dy) << "f <= DATA_H-1.0f";
-						bchk = true;
-					}
-					if(dy < 0){
-						if(bchk)ss << " && ";
-						ss << "y-" << (float)abs(dy) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dx > 0){
-						if(bchk)ss << " && ";
-						ss << "x+" << (float)abs(dx) << "f <= DATA_W-1.0f";
-						bchk = true;
-					}
-					if(dx < 0){
-						if(bchk)ss << " && ";
-						ss << "x-" << (float)abs(dx) << "f >= 0.0f";
-						bchk = true;
-					}
-					int maxlen = strlen("\tif(x+1.0f <= DATA_W-1.0f && y+1.0f <= DATA_H-1.0f&& z+1.0f <= DATA_D-1.0f");
-					int indent = maxlen - ss.str().length() + 1;
-					for(int i = 0; i < indent; i++)ss << " ";
-					ss << " && d > ";
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << ")";
-					
-					
-					if(bchk)ss << " {";
-					else ss << "  ";
-
-					ss << "nbr = ";
-
-					ss << "tex3D(tex_VolumeI, x";
-					if(dx >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dx);
-
-					ss << ", y";
-					if(dy >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dy);
-
-					ss << ", z";
-					if(dz >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dz);
-
-					ss << "); if(nbr >= 0){d = ";
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << "; own = nbr;}";
-					
-					if(bchk)ss << "}\n";
-					else ss << "\n";
-
-					ofs << ss.str().c_str();
-				}
-				*/
-				/*
-				if(kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] > 0.0f){
-					int dx = x - KERNEL_RADIUS;
-					int dy = y - KERNEL_RADIUS;
-					int dz = z - KERNEL_RADIUS;
-					bool bchk = false;
-					ss.str("");
-					ss << "\tif(" << fixed << setprecision(1);
-					if(dz > 0){
-						ss << "z+" << (float)abs(dz) << "f <= DATA_D-1.0f";
-						bchk = true;
-					}
-					if(dz < 0){
-						ss << "z-" << (float)abs(dz) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dy > 0){
-						if(bchk)ss << " && ";
-						ss << "y+" << (float)abs(dy) << "f <= DATA_H-1.0f";
-						bchk = true;
-					}
-					if(dy < 0){
-						if(bchk)ss << " && ";
-						ss << "y-" << (float)abs(dy) << "f >= 0.0f";
-						bchk = true;
-					}
-					if(dx > 0){
-						if(bchk)ss << " && ";
-						ss << "x+" << (float)abs(dx) << "f <= DATA_W-1.0f";
-						bchk = true;
-					}
-					if(dx < 0){
-						if(bchk)ss << " && ";
-						ss << "x-" << (float)abs(dx) << "f >= 0.0f";
-						bchk = true;
-					}
-					int maxlen = strlen("\tif(x+1.0f <= DATA_W-1.0f && y+1.0f <= DATA_H-1.0f&& z+1.0f <= DATA_D-1.0f");
-					int indent = maxlen - ss.str().length() + 1;
-					for(int i = 0; i < indent; i++)ss << " ";
-					ss << " && d > ";
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << ")";
-					
-					
-					if(bchk)ss << " {";
-					else ss << "  ";
-
-					ss << "nbr = ";
-
-					ss << "tex3D(tex_VolumeI, x";
-					if(dx >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dx);
-
-					ss << ", y";
-					if(dy >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dy);
-
-					ss << ", z";
-					if(dz >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dz);
-
-					ss << "); if(own != nbr){d = ";
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << "; own = -1;}";
-					
-					if(bchk)ss << "}\n";
-					else ss << "\n";
-
-					ofs << ss.str().c_str();
-				}
-				*/
-				if(kernel[z*KERNEL_LENGTH*KERNEL_LENGTH + y*KERNEL_LENGTH + x] > 0.0f){
-					int dx = x - KERNEL_RADIUS;
-					int dy = y - KERNEL_RADIUS;
-					int dz = z - KERNEL_RADIUS;
-					bool bchk = false;
-					ss.str("");
-					ss << "\t\tif(d > ";
-					
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << ")";
-					
-					
-					if(bchk)ss << " {";
-					else ss << "  ";
-
-					ss << "nbr = ";
-
-					ss << "tex3D(tex_VolumeI, x";
-					if(dx >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dx);
-
-					ss << ", y";
-					if(dy >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dy);
-
-					ss << ", z";
-					if(dz >= 0)ss << " + ";
-					else ss << " - ";
-					ss << (float)abs(dz);
-
-					ss << "); if(own != nbr){d = ";
-					for(int i = 0; i < (int)log10(radius*radius) - (int)log10(dx*dx + dy*dy + dz*dz); i++)ss << " ";
-					ss << dx*dx + dy*dy + dz*dz << "; own = -1;}";
-					
-					if(bchk)ss << "}\n";
-					else ss << "\n";
-
-					ofs << ss.str().c_str();
-				}
-			}
-			putchar('\n');
-		}
-		putchar('\n');
-		putchar('\n');
-	}
-	
-	ofs.close();
-	
 }
 
 void Filter3D::erosionSpherical(int radius, bool copyToHostMemory){
@@ -3251,11 +2719,13 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 	Box3D bb;
 	
 	printf("<<binarySegmentationLow(SegmentsValidation ON): noise_rad = %d wall_rad = %d  minInvalidStructureVol = %d>>\n", noise_rad, wall_rad, minInvalidStructureVol);
+
+	if(d_Tmp)checkCudaErrors( cudaFree(d_Tmp) );
+	checkCudaErrors( cudaDeviceSynchronize()  );
 	
 	int *d_Seg, *d_Seg2;
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
-	checkCudaErrors( cudaMalloc((void **)(&d_Seg2) , imageZ * imageW * imageH * sizeof(int)) );
-
+	
 	//ÉÅÉÇÉäÉäÅ[ÉNÅH
 	if(invalid_seg_bbox != NULL)std::vector<Box3D>().swap(*invalid_seg_bbox);
 	clear2DVector(invalid_segments);
@@ -3274,6 +2744,7 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 		setMinValIntGPU(d_Seg, imageW, imageH, imageZ, SEGMENT_BLANK);
 		checkCudaErrors( cudaMemcpy(segdata, d_Seg, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
 	}
+	checkCudaErrors( cudaFree(d_Seg) );
 
 	for(int z = 0; z < imageZ; z++){
 		for(int y = 0; y < imageH; y++){
@@ -3295,12 +2766,10 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 	}
 	printf("binarySegmentation: segments %d\n", id);
 
-	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
-	initCuda_Suf3D_Int(d_Seg, imageW, imageH, imageZ);
+	initCuda_Suf3D_Int(segdata, imageW, imageH, imageZ, cudaMemcpyHostToDevice);
 	checkCudaErrors( cudaDeviceSynchronize() );
 	
 	if(wall_rad >= 4){
-		checkCudaErrors( cudaDeviceSynchronize() );
 		for(int i = 0; i < wall_rad / 4; i++){
 			dilateSegmentsSurfaceSphereGPU(4, imageW, imageH, imageZ);
 			checkCudaErrors( cudaDeviceSynchronize() );
@@ -3316,7 +2785,6 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 	}
 
 	if(wall_rad >= 4){
-		checkCudaErrors( cudaDeviceSynchronize() );
 		for(int i = 0; i < wall_rad / 4; i++){
 			erodeSegmentsSurfaceSphereGPU_v2(4, imageW, imageH, imageZ);
 			checkCudaErrors( cudaDeviceSynchronize() );
@@ -3330,13 +2798,20 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 		erodeSegmentsSurfaceSphereGPU_v2(wall_rad, imageW, imageH, imageZ);
 		checkCudaErrors( cudaDeviceSynchronize() );
 	}
-	
-	copyToDeviceMemFromSuf3D_Int(d_Seg2, imageW, imageH, imageZ);
+	int *segdatatmp = new int[imageW*imageH*imageZ];
+	copyToHostMemFromSuf3D_Int(segdatatmp, imageW, imageH, imageZ);
 	checkCudaErrors( cudaDeviceSynchronize() );
 	destructCuda_Suf3D();
 
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg2) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
+	checkCudaErrors( cudaMemcpy(d_Seg2, segdatatmp, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
 	segmentsMaskIntGPU(d_Seg2, d_Seg2, d_Seg, imageW, imageH, imageZ);
 	checkCudaErrors( cudaDeviceSynchronize() );
+	delete [] segdatatmp;
 
 	int *inv_segdata = new int[imageW*imageH*imageZ];
 	int *inv_sum = new int[segments->size()];
@@ -3378,8 +2853,11 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 	delete [] inv_segdata;
 	delete [] inv_sum;
 	checkCudaErrors( cudaMemcpy(d_Output, data, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
-	checkCudaErrors( cudaFree(d_Seg) );
+	
 	checkCudaErrors( cudaFree(d_Seg2) );
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 }
 
 void Filter3D::resetSegmentColors(){
@@ -4239,7 +3717,7 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 	if(isEmpty)return;
 	if(angle_d <= 0 || blocksize <= 0 || minC > maxC || interval <= 0 || closing < 0)return; 
 
-	printf("<<Segmentation_SobelLikeADTH: blocksize = %d  angle_d = %d  factor_C_Z = %f  minC = %f  maxC = %f  interval = %f  kernelType = %d  minInvalidStructureArea = %d>>\n",
+	printf("<<Segmentation_DSLT: blocksize = %d  angle_d = %d  factor_C_Z = %f  minC = %f  maxC = %f  interval = %f  kernelType = %d  minInvalidStructureArea = %d>>\n",
 			blocksize, angle_d, factor_C_Z, minC, maxC, interval, kernelType, minInvalidStructureArea);
 
 	float curC = minC;
@@ -4255,8 +3733,7 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 	float *dsadth = new float[imageW*imageH*imageZ];
 	float *argmin_lati = new float[imageW*imageH*imageZ];
 	int *d_Seg;
-	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
-	
+		
 	checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 
 	printf("\n[C = %f]\n", curC);
@@ -4280,8 +3757,11 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 	
 	if(seg_bbox != NULL)std::vector<Box3D>().swap(*seg_bbox);
 	clear2DVector(segments);
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaDeviceSynchronize() );
 	fillIntGPU(d_Seg, imageW, imageH, imageZ, SEGMENT_BLANK);
 	checkCudaErrors( cudaMemcpy(segdata, d_Seg, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
 
 	if(crop_isEnable){
 		for(int z = 0; z < imageZ; z++){
@@ -4344,9 +3824,11 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 		maximumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
 		minimumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
 
+		checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
 		checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
 		setValToSegmentedRegionROIGPU(d_Output, d_Seg, 0.0f, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
 		checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+		checkCudaErrors( cudaFree(d_Seg) );
 
 		if(crop_isEnable){
 			for(int z = 0; z < imageZ; z++){
@@ -4435,9 +3917,11 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 		}
 	}
 	*/
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
 	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
 	setValToSegmentedRegionROIGPU(d_Output, d_Seg, BINALIZE_LOWER_VAL, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
 	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
 	
 	memcpy(dmap, dstdata, imageW*imageH*imageZ*sizeof(float));
 
@@ -4447,14 +3931,13 @@ void Filter3D::segmentation_SobelLikeADTH(int blocksize, int angle_d, float fact
 	float elapsedTime;
 	cudaEventElapsedTime(&elapsedTime, start, stop);
 	double gpuTime = 0.001 * elapsedTime;
-	printf("\nSegmentation_SobelLikeADTH: Time = %.5f s, Size = %u Pixels\n\n", gpuTime, (imageW * imageH * imageZ));
+	printf("\nSegmentation_DSLT: Time = %.5f s, Size = %u Pixels\n\n", gpuTime, (imageW * imageH * imageZ));
 
 	//checkCudaErrors( cudaMemcpy(d_Output, before_FH, imageW * imageH * imageZ * sizeof(float), cudaMemcpyHostToDevice) );
 	//checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
 	delete [] dsadth;
 	delete [] argmin_lati;
-	checkCudaErrors( cudaFree(d_Seg) );
-
+	
 	saveBackupSegmentsData();
 }
 
@@ -4740,50 +4223,139 @@ void Filter3D::segmentation_hMinimaTransform(float minh, float maxh, float inter
 
 	cudaEventRecord(start, 0);
 	
-	float *before_FH = new float[imageW*imageH*imageZ];
-	
+	int *d_Seg;
+		
+	checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 
 	printf("\n[h = %f]\n", curh);
+	
 	hMinimaTransform3D_GPU(maxh, 10, true);
-	thickness = estimateWallThickness(0, 0.3f);
-	fillingHolesSimple(dstdata, closing);
-	checkCudaErrors( cudaMemcpy(before_FH, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
-	binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, min_segVol, true, thickness/3, thickness, minInvalidStructureArea*thickness, true, true);
+	maximumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+	minimumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+
+	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+	
+	if(seg_bbox != NULL)std::vector<Box3D>().swap(*seg_bbox);
+	clear2DVector(segments);
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaDeviceSynchronize() );
+	fillIntGPU(d_Seg, imageW, imageH, imageZ, SEGMENT_BLANK);
+	checkCudaErrors( cudaMemcpy(segdata, d_Seg, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
+
+	if(crop_isEnable){
+		for(int z = 0; z < imageZ; z++){
+			for(int y = 0; y < imageH; y++){
+				for(int x = 0; x < imageW; x++){
+					if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+						dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					else if(crop_useHmap && !hmapEmpty){
+						if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					}
+					else{
+						if(z < crop_upper || z > crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					}
+				}
+			}
+		}
+	}
+	
+	thickness = estimateWallThickness(0, 0.5f);
+
+	if(crop_isEnable){
+		for(int z = 0; z < imageZ; z++){
+			for(int y = 0; y < imageH; y++){
+				for(int x = 0; x < imageW; x++){
+					if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+						dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					else if(crop_useHmap && !hmapEmpty){
+						if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					}
+					else{
+						if(z < crop_upper || z > crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					}
+				}
+			}
+		}
+	}
+
+	binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, true, 0, thickness, (maxh == minh) ? INT_MAX : minInvalidStructureArea*thickness, true, true);
 	curh = maxh - interval;
 
 	int loopcount = 1;
 	while(curh > minh - interval){
 		if(curh < minh)curh = minh;
 		printf("\n[h = %f]\n", curh);
-		hMinimaTransform3D_GPU(curh, 10, true);
 		
-		checkCudaErrors( cudaMemcpy(d_Buffer, before_FH, imageW * imageH * imageZ * sizeof(float), cudaMemcpyHostToDevice) );
-		pixelwiseOrGPU(d_Output, d_Output, d_Buffer, imageW, imageH, imageZ);
+		hMinimaTransform3D_GPU(curh, 10, true);
+		maximumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+		minimumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+
+		checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+		checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
+		setValToSegmentedRegionROIGPU(d_Output, d_Seg, 0.0f, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
 		checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
-		for(int id = 0; id < segments->size(); id++){
-			for(int i = 0; i < (*segments)[id].size(); i++){
-				dstdata[(*segments)[id][i].z*imageW*imageH + (*segments)[id][i].y*imageW + (*segments)[id][i].x] = 0.0f;
+		checkCudaErrors( cudaFree(d_Seg) );
+
+		if(crop_isEnable){
+			for(int z = 0; z < imageZ; z++){
+				for(int y = 0; y < imageH; y++){
+					for(int x = 0; x < imageW; x++){
+						if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						else if(crop_useHmap && !hmapEmpty){
+							if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						}
+						else{
+							if(z < crop_upper || z > crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						}
+					}
+				}
 			}
 		}
-		thickness = estimateWallThickness(thickness/2, 0.3f);
-		
-		fillingHolesSimple(dstdata, closing);
-		checkCudaErrors( cudaMemcpy(before_FH, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
 
-		binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, min_segVol, false, thickness/3, thickness, minInvalidStructureArea*thickness, true, true);
-		
+		thickness = estimateWallThickness(thickness/2, 0.5f);
+
+		if(crop_isEnable){
+			for(int z = 0; z < imageZ; z++){
+				for(int y = 0; y < imageH; y++){
+					for(int x = 0; x < imageW; x++){
+						if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						else if(crop_useHmap && !hmapEmpty){
+							if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						}
+						else{
+							if(z < crop_upper || z > crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						}
+					}
+				}
+			}
+		}
+
+		if(maxh - interval * (loopcount + 1) <= minh - interval)binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, false, 0, thickness, INT_MAX, true, true);
+		else binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, false, 0, thickness, minInvalidStructureArea*thickness, true, true);
+		if(invalid_segments->size() == 0)break;
 		loopcount++;
 		curh = maxh - interval * loopcount;
 		
 	}
 
-	for(int x = 0; x < imageW; x++){
-		for(int y = 0; y < imageH; y++){
-			for(int z = 0; z < imageZ; z++){
-				if(segdata[z*imageH*imageW + y*imageW + x] >= 0)dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
-			}
-		}
-	}
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
+	setValToSegmentedRegionROIGPU(d_Output, d_Seg, BINALIZE_LOWER_VAL, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
+	
+	memcpy(dmap, dstdata, imageW*imageH*imageZ*sizeof(float));
 
 	checkCudaErrors( cudaDeviceSynchronize() );
 	cudaEventRecord(stop, 0);
@@ -4793,10 +4365,170 @@ void Filter3D::segmentation_hMinimaTransform(float minh, float maxh, float inter
 	double gpuTime = 0.001 * elapsedTime;
 	printf("\nSegmentation_hMinimaTransform: Time = %.5f s, Size = %u Pixels\n\n", gpuTime, (imageW * imageH * imageZ));
 
-	//checkCudaErrors( cudaMemcpy(d_Output, before_FH, imageW * imageH * imageZ * sizeof(float), cudaMemcpyHostToDevice) );
-	//checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
-	delete [] before_FH;
-	//delete [] new_ADTH;
+	saveBackupSegmentsData();
+}
+
+void Filter3D::segmentation_Threshold(float minth, float maxth, float interval, int min_segVol, int minInvalidStructureArea, int closing)
+{
+	if(isEmpty)return;
+	if(minth > maxth || interval <= 0 || closing < 0)return; 
+
+	printf("<<Segmentation_Threshold: minh = %f  maxh = %f  interval = %f  min_segVol = %d  minInvalidStructureArea = %d>>\n",
+			minth, maxth, interval, min_segVol, minInvalidStructureArea);
+
+	float curth = maxth;
+	int thickness = 0;
+	
+	cudaEvent_t start, stop;
+	
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+
+	cudaEventRecord(start, 0);
+	
+	int *d_Seg;
+		
+	checkCudaErrors( cudaMemcpy(d_Input, imgdata, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
+
+	printf("\n[h = %f]\n", curth);
+	
+	thresholdGPU(d_Output, d_Input, imageW, imageH, imageZ, curth);
+	maximumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+	minimumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+
+	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+	
+	if(seg_bbox != NULL)std::vector<Box3D>().swap(*seg_bbox);
+	clear2DVector(segments);
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaDeviceSynchronize() );
+	fillIntGPU(d_Seg, imageW, imageH, imageZ, SEGMENT_BLANK);
+	checkCudaErrors( cudaMemcpy(segdata, d_Seg, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
+
+	if(crop_isEnable){
+		for(int z = 0; z < imageZ; z++){
+			for(int y = 0; y < imageH; y++){
+				for(int x = 0; x < imageW; x++){
+					if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+						dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					else if(crop_useHmap && !hmapEmpty){
+						if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					}
+					else{
+						if(z < crop_upper || z > crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+					}
+				}
+			}
+		}
+	}
+	
+	thickness = estimateWallThickness(0, 0.5f);
+
+	if(crop_isEnable){
+		for(int z = 0; z < imageZ; z++){
+			for(int y = 0; y < imageH; y++){
+				for(int x = 0; x < imageW; x++){
+					if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+						dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					else if(crop_useHmap && !hmapEmpty){
+						if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					}
+					else{
+						if(z < crop_upper || z > crop_lower)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+					}
+				}
+			}
+		}
+	}
+
+	binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, true, 0, thickness, (maxth == minth) ? INT_MAX : minInvalidStructureArea*thickness, true, true);
+	curth = maxth - interval;
+
+	int loopcount = 1;
+	while(curth > minth - interval){
+		if(curth < minth)curth = minth;
+		printf("\n[h = %f]\n", curth);
+		
+		thresholdGPU(d_Output, d_Input, imageW, imageH, imageZ, curth);
+		maximumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+		minimumSphereFilter(closing, d_Output, d_Buffer, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+
+		checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+		checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
+		setValToSegmentedRegionROIGPU(d_Output, d_Seg, 0.0f, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+		checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+		checkCudaErrors( cudaFree(d_Seg) );
+
+		if(crop_isEnable){
+			for(int z = 0; z < imageZ; z++){
+				for(int y = 0; y < imageH; y++){
+					for(int x = 0; x < imageW; x++){
+						if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						else if(crop_useHmap && !hmapEmpty){
+							if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						}
+						else{
+							if(z < crop_upper || z > crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_LOWER_VAL;
+						}
+					}
+				}
+			}
+		}
+
+		thickness = estimateWallThickness(thickness/2, 0.5f);
+
+		if(crop_isEnable){
+			for(int z = 0; z < imageZ; z++){
+				for(int y = 0; y < imageH; y++){
+					for(int x = 0; x < imageW; x++){
+						if(y < crop_border_xy_thickness || y >= imageH - crop_border_xy_thickness || x < crop_border_xy_thickness || x >= imageW - crop_border_xy_thickness)
+							dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						else if(crop_useHmap && !hmapEmpty){
+							if(z < hmap[y*imageW + x] + crop_upper || z > hmap[y*imageW + x] + crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						}
+						else{
+							if(z < crop_upper || z > crop_lower)
+								dstdata[z*imageH*imageW + y*imageW + x] = BINALIZE_UPPER_VAL;
+						}
+					}
+				}
+			}
+		}
+
+		if(maxth - interval * (loopcount + 1) <= minth - interval)binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, false, 0, thickness, INT_MAX, true, true);
+		else binarySegmentationLow(dstdata, 0.1f, SEGMENT_CONNECT6, 0, false, 0, thickness, minInvalidStructureArea*thickness, true, true);
+		if(invalid_segments->size() == 0)break;
+		loopcount++;
+		curth = maxth - interval * loopcount;
+		
+	}
+
+	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
+	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
+	setValToSegmentedRegionROIGPU(d_Output, d_Seg, BINALIZE_LOWER_VAL, imageW, imageH, imageZ, 0, 0, 0, imageW, imageH, imageZ);
+	checkCudaErrors( cudaMemcpy(dstdata, d_Output, imageW * imageH * imageZ * sizeof(float), cudaMemcpyDeviceToHost) );
+	checkCudaErrors( cudaFree(d_Seg) );
+	
+	memcpy(dmap, dstdata, imageW*imageH*imageZ*sizeof(float));
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	float elapsedTime;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	double gpuTime = 0.001 * elapsedTime;
+	printf("\nSegmentation_Threshold: Time = %.5f s, Size = %u Pixels\n\n", gpuTime, (imageW * imageH * imageZ));
+
+	saveBackupSegmentsData();
 }
 
 void Filter3D::AdaptiveThreshold3D_CPU(int blocksize, float constC, int thresholdType)
@@ -6604,6 +6336,11 @@ void Filter3D::separateSelectedSegments()
 
 	saveBackupSegmentsData();
 
+	if(d_Tmp)   checkCudaErrors( cudaFree(d_Tmp) );
+	if(d_Buffer)checkCudaErrors( cudaFree(d_Buffer) );
+	if(d_Output)checkCudaErrors( cudaFree(d_Output) );
+	checkCudaErrors( cudaDeviceSynchronize() );
+
 	float *bound = new float[imageW*imageH*imageZ];
 	float *d_Bound;
 	checkCudaErrors( cudaMalloc((void **)(&d_Bound) , imageZ * imageW * imageH * sizeof(float)) );
@@ -6646,6 +6383,11 @@ void Filter3D::separateSelectedSegments()
 	delete [] bound;
 	checkCudaErrors( cudaFree(d_Bound) );
 	checkCudaErrors( cudaFree(d_Seg) );
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Buffer) , imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 }
 
 void Filter3D::dilateSphereSelectedSegments(int radius)
@@ -6655,6 +6397,11 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 	if(selected_segment->size() <= 0)return;
 
 	saveBackupSegmentsData();
+
+	if(d_Tmp)   checkCudaErrors( cudaFree(d_Tmp) );
+	if(d_Buffer)checkCudaErrors( cudaFree(d_Buffer) );
+	if(d_Output)checkCudaErrors( cudaFree(d_Output) );
+	checkCudaErrors( cudaDeviceSynchronize() );
 
 	int diameter = radius*2 + 1;
 
@@ -6682,7 +6429,7 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 
 		cropIntGPU(d_SegROI, d_Seg, imageW, imageH, imageZ, bb.x, bb.y, bb.z, bb.width, bb.height, bb.depth);
 		checkCudaErrors( cudaDeviceSynchronize() );
-		initCuda_Suf3D_Int(d_SegROI, bb.width, bb.height, bb.depth);
+		initCuda_Suf3D_Int(d_SegROI, bb.width, bb.height, bb.depth, cudaMemcpyDeviceToDevice);
 		
 		checkCudaErrors( cudaDeviceSynchronize() );
 		if(radius >= 4){
@@ -6740,6 +6487,11 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_SegOut) );
 	checkCudaErrors( cudaFree(d_SegROI) );
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Buffer) , imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 }
 
 void Filter3D::erodeSphereSelectedSegments(int radius, bool clamp)
@@ -6749,6 +6501,11 @@ void Filter3D::erodeSphereSelectedSegments(int radius, bool clamp)
 	if(selected_segment->size() <= 0)return;
 
 	saveBackupSegmentsData();
+
+	if(d_Tmp)   checkCudaErrors( cudaFree(d_Tmp) );
+	if(d_Buffer)checkCudaErrors( cudaFree(d_Buffer) );
+	if(d_Output)checkCudaErrors( cudaFree(d_Output) );
+	checkCudaErrors( cudaDeviceSynchronize() );
 
 	int diameter = radius*2 + 1;
 
@@ -6777,7 +6534,7 @@ void Filter3D::erodeSphereSelectedSegments(int radius, bool clamp)
 		checkCudaErrors( cudaDeviceSynchronize() );
 		replacementIntROIGPU(d_Seg, (*selected_segment)[i], SEGMENT_BLANK, imageW, imageH, imageZ, bb.x, bb.y, bb.z, bb.width, bb.height, bb.depth);
 		checkCudaErrors( cudaDeviceSynchronize() );
-		initCuda_Suf3D_Int(d_SegROI, bb.width, bb.height, bb.depth);
+		initCuda_Suf3D_Int(d_SegROI, bb.width, bb.height, bb.depth, cudaMemcpyDeviceToDevice);
 		
 		checkCudaErrors( cudaDeviceSynchronize() );
 		if(radius >= 4){
@@ -6845,6 +6602,11 @@ void Filter3D::erodeSphereSelectedSegments(int radius, bool clamp)
 	delete [] segroi;
 	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_SegROI) );
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Buffer) , imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 }
 
 void Filter3D::watershed3D(float stride, int seg_minVol)
@@ -6854,6 +6616,10 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	if(segments == NULL || seg_bbox == NULL || segdata == NULL)return;
 
 	saveBackupSegmentsData();
+
+	if(d_Tmp)   checkCudaErrors( cudaFree(d_Tmp) );
+	if(d_Output)checkCudaErrors( cudaFree(d_Output) );
+	checkCudaErrors( cudaDeviceSynchronize() );
 
 	float *levels = new float[imageW*imageH*imageZ];
 	memcpy(levels, imgdata, imageW*imageH*imageZ*sizeof(float));
@@ -6894,7 +6660,7 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 		}
 	}
 
-	initCuda_Watershed(segdata, bufdata, imageW, imageH, imageZ);
+	initCuda_Watershed(segdata, bufdata, imageW, imageH, imageZ, cudaMemcpyHostToDevice);
 	int *d_Seg_ref, *d_Seg;
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg_ref) , imageZ * imageW * imageH * sizeof(int)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
@@ -6907,7 +6673,7 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	int i = 0;
 	float epsilon = 1.0/256.0f;
 	while(lv < size){
-		if(th + epsilon < levels[lv]){
+		if(th + epsilon < levels[lv] || (lv == size - 1 && th != levels[lv])){
 			th = levels[lv];
 			int inner_ite = 0;
 			bool loop_end = false;
@@ -6967,6 +6733,10 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	destructCuda_Suf3D();
 	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_Seg_ref) );
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
+	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 
 	for(int z = 0; z < imageZ; z++){
 		for(int y = 0; y < imageH; y++){

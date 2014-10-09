@@ -188,20 +188,20 @@ bool Class1::saveDst2DImage(System::String ^filename)
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 	
 	string fnameYZ = c_str;
 	size_t found = fnameYZ.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameYZ.insert(found, "YZ");
-	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	string fnameZX = c_str;
 	found = fnameZX.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameZX.insert(found, "ZX");
-	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order);
+	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
 	return (flt3d->savebufXY(c_str) && flt3d->savebufYZ(fnameYZ.c_str()) && flt3d->savebufZX(fnameZX.c_str()));
 }
@@ -662,6 +662,15 @@ void Class1::segmentation_hMinimaTransform(float minh, float maxh, float interva
 	}
 }
 
+void Class1::segmentation_Thresholding(float minth, float maxth, float interval, int min_segVol, int minInvalidStructureArea, int closing)
+{
+	if(isEmpty)return;
+	if(flt3d->isAvilableGPU()){
+		flt3d->segmentation_Threshold(minth, maxth, interval, min_segVol, minInvalidStructureArea, closing);
+		flt3d->saveBackupSegmentsData();
+	}
+}
+
 void Class1::segmentation_FloodFill(float th_val, int connectType, int minSize)
 {
 	flt3d->binarySegmentationLow(flt3d->getDstData(), th_val, connectType, minSize, true);
@@ -709,18 +718,12 @@ void Class1::AdaptiveThreshold2D(int blocksize, float constC, int thresholdType,
 	
 }
 
-void Class1::threshold3D(int blocksize, float constC, int thresholdType, bool copyToHostMemory)
+void Class1::thresholding(float th)
 {
 	if(isEmpty)return;
 
-	if(flt3d->isAvilableGPU())flt3d->threshold3D_GPU(blocksize, constC*C_factor, thresholdType, copyToHostMemory);
-	else flt3d->threshold3D_CPU(blocksize, constC*C_factor, thresholdType);
+	if(flt3d->isAvilableGPU())flt3d->threshold_GPU(th);
 
-	//flt3d->resetSegmentColors();
-
-	//flt3d->fillingHoles(flt3d->getDstData(), 12, 4, 0);
-	//flt3d->estimateWallThickness(1);
-	
 }
 
 void Class1::threshold2D(int blocksize, float constC, int thresholdType, bool copyToHostMemory)

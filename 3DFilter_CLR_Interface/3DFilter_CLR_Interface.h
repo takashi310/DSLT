@@ -132,11 +132,12 @@ namespace TestCVclass {
 		void segmentation_SobelLikeADTH(int blocksize, int angle_d, float factor_C_Z, float minC, float maxC, float interval, int kernelType, int min_segVol, int minInvalidStructureArea, int closing);
 		void hMinimaTransform3D(float h, int chk_interval, bool copyToHostMemory);
 		void segmentation_hMinimaTransform(float minh, float maxh, float interval, int min_segVol, int minInvalidStructureArea, int closing);
+		void segmentation_Thresholding(float minth, float maxth, float interval, int min_segVol, int minInvalidStructureArea, int closing);
 		void segmentation_FloodFill(float th_val, int connectType, int minSize);
 		void segmentation_FloodFill(float th_val, int connectType, int minSize, int noise_th, int wall_th, int minInvalidStructureVol, bool saveValidSegments, bool saveInvalidSegments);
 		void AdaptiveThreshold3D(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
 		void AdaptiveThreshold2D(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
-		void threshold3D(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
+		void thresholding(float th);
 		void threshold2D(int blocksize, float constC, int thresholdType, bool copyToHostMemory);
 		void smooth3D(int blocksize, int filterType, bool copyToHostMemory);
 		void dilation3D(int radius, int filterShape, bool copyToHostMemory);

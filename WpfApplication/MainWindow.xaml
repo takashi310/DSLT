@@ -101,7 +101,7 @@
                             </GroupBox>
                         </ListBoxItem>
 
-                        <ListBoxItem Name="Z_Scaling">
+                        <ListBoxItem Name="Z_Scaling" Visibility="Collapsed">
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
                                 <GroupBox.Header>
                                     <Label Foreground="#FFFFFF">Z Scaling</Label>
@@ -157,11 +157,11 @@
                                         <Label IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_coefficient_slider}">Coefficient</Label>
                                         <Slider x:Name="DC_coefficient_slider" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="10" Minimum="0" Value="100" ValueChanged="DC_coefficient_slider_ValueChanged" />
                                         <TextBox Name="DC_coefficient_txt" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_coefficient_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_order_slider}">Order</Label>
+                                        <Label IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=DC_order_slider}">Exp</Label>
                                         <Slider x:Name="DC_order_slider" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10" Minimum="1" Value="1" ValueChanged="DC_order_slider_ValueChanged" />
                                         <TextBox Name="DC_order_txt" IsEnabled="{Binding ElementName=DC_cb, Path=IsChecked}" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=DC_order_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
-                                    <Grid>
+                                    <Grid Visibility="Collapsed">
                                         <Button x:Name="BC_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="BC_apply_button_Click">Apply</Button>
                                     </Grid>
                                 </StackPanel>
@@ -171,7 +171,7 @@
                         <ListBoxItem Name="HeightMapper">
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
                                 <GroupBox.Header>
-                                    <CheckBox x:Name="H_hproj_cb" IsChecked="False" Height="20" Margin="0,0,0,0">Height Map</CheckBox>
+                                    <Label Foreground="#FFFFFF">Height Map</Label>
                                 </GroupBox.Header>
                                 <StackPanel>
                                     <CheckBox x:Name="H_show_cb" IsChecked="True" Height="20" Margin="12,2,0,0">Show Height Map</CheckBox>
@@ -185,9 +185,9 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_normal_rb}">Projection</Label>
-                                        <RadioButton x:Name="H_normal_rb" Margin="6,0,12,0" Height="20" Grid.Column="1" Grid.Row="0" GroupName="Group5" HorizontalAlignment="Left">Normal</RadioButton>
-                                        <RadioButton x:Name="H_z_rb" IsChecked="True" Margin="12,0,12,0" Height="20" Grid.Column="2" Grid.Row="0" GroupName="Group5" HorizontalAlignment="Left">Z</RadioButton>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_normal_rb}">Projection</Label>
+                                        <RadioButton x:Name="H_normal_rb" Visibility="Collapsed" Margin="6,0,12,0" Height="20" Grid.Column="1" Grid.Row="0" GroupName="Group5" HorizontalAlignment="Left">Normal</RadioButton>
+                                        <RadioButton x:Name="H_z_rb" Visibility="Collapsed" IsChecked="True" Margin="12,0,12,0" Height="20" Grid.Column="2" Grid.Row="0" GroupName="Group5" HorizontalAlignment="Left">Z</RadioButton>
                                         <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_mean_rb}">Filter Type</Label>
                                         <RadioButton x:Name="H_mean_rb" Margin="6,0,12,0" Height="20" Grid.Column="1" Grid.Row="1" GroupName="Group4" HorizontalAlignment="Left">Mean</RadioButton>
                                         <RadioButton x:Name="H_gauss_rb" IsChecked="True" Margin="12,0,12,0" Height="20" Grid.Column="2" Grid.Row="1" GroupName="Group4" HorizontalAlignment="Left">Gaussian</RadioButton>
@@ -225,22 +225,44 @@
                                         <Slider x:Name="H_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.25" ValueChanged="H_th_slider_ValueChanged" />
                                         <TextBox Name="H_th_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_th_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_offset_slider}">Offset</Label>
+                                    </Grid>
+                                    <Grid>
+                                        <Button x:Name="H_generate_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_generate_button_Click">Generate</Button>
+                                        <Button x:Name="H_clear_button" Width="80" Height="25" Margin="12,6,15,0" HorizontalAlignment="Left" Click="H_clear_button_Click">Clear</Button>
+                                    </Grid>
+                                    <CheckBox x:Name="H_hproj_cb" IsChecked="False" Height="20" Margin="12,15,0,0">Use Hmap for Z Projection</CheckBox>
+                                    <Grid Width="Auto" Height="Auto">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="95"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_offset_slider}">Offset</Label>
                                         <Slider x:Name="H_offset_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_offset_slider_ValueChanged" />
                                         <TextBox Name="H_offset_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_offset_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_depth_slider}">Depth</Label>
-                                        <Slider x:Name="H_depth_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_depth_slider_ValueChanged" />
-                                        <TextBox Name="H_depth_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_depth_slider, Path=Value}" TextAlignment="Right"/>
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_depth_slider}">Depth</Label>
+                                        <Slider x:Name="H_depth_slider" Visibility="Collapsed" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_depth_slider_ValueChanged" />
+                                        <TextBox Name="H_depth_txt" Visibility="Collapsed" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_depth_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_range_slider}">Range</Label>
                                         <Slider x:Name="H_range_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_range_slider_ValueChanged" />
                                         <TextBox Name="H_range_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_range_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_proj_th_slider}">TH(Proj)</Label>
                                         <Slider x:Name="H_proj_th_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_proj_th_slider_ValueChanged" />
                                         <TextBox Name="H_proj_th_txt" Visibility="Collapsed" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_proj_th_slider, Path=Value}" TextAlignment="Right"/>
-
-                                    </Grid>
-                                    <Grid>
-                                        <Button x:Name="H_generate_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_generate_button_Click">Generate</Button>
-                                        <Button x:Name="H_clear_button" Width="80" Height="25" Margin="12,6,15,0" HorizontalAlignment="Left" Click="H_clear_button_Click">Clear</Button>
                                     </Grid>
                                     <CheckBox x:Name="H_crop_cb" IsChecked="False" Height="20" Margin="12,15,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Cropping</CheckBox>
                                     <CheckBox x:Name="H_crop_hmap_cb" IsEnabled="{Binding ElementName=H_crop_cb, Path=IsChecked}" IsChecked="True" Height="20" Margin="12,0,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Use Hmap for Cropping</CheckBox>
@@ -341,9 +363,10 @@
                         <ListBoxItem Name="Segments">
                             <GroupBox Width="Auto" Height="Auto" Margin="3,5,3,0">
                                 <GroupBox.Header>
-                                    <CheckBox x:Name="SG_cb" Height="20" Margin="0,0,0,0" IsChecked="True" Checked="SG_cb_Checked" Unchecked="SG_cb_Unchecked">Segments</CheckBox>
+                                    <Label Foreground="#FFFFFF">Segment</Label>
                                 </GroupBox.Header>
                                 <StackPanel>
+                                    <CheckBox x:Name="SG_cb" Height="20" Margin="12,2,0,0" IsChecked="True" Checked="SG_cb_Checked" Unchecked="SG_cb_Unchecked">Show Segments</CheckBox>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -378,6 +401,7 @@
                     <ComboBox Name="cmb" Width="280" SelectionChanged="cmb_SelectionChanged">
                         <ComboBoxItem Name="cbi_TitleDummy" Visibility="Collapsed" IsSelected="True">Tools</ComboBoxItem>
                         <ComboBoxItem Name="cbi_Smoothing" Selected="cbi_Selected">Smoothing</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_Threshold" Selected="cbi_Selected">Thresholding</ComboBoxItem>
                         <ComboBoxItem Name="cbi_Dilation"  Selected="cbi_Selected">Dilation</ComboBoxItem>
                         <ComboBoxItem Name="cbi_Erosion"   Selected="cbi_Selected">Erosion</ComboBoxItem>
                         <ComboBoxItem Name="cbi_LoacalTH"  Selected="cbi_Selected">Local Thresholding</ComboBoxItem>
@@ -385,6 +409,7 @@
                         <ComboBoxItem Name="cbi_hMinima"   Selected="cbi_Selected">H-Minima Transform</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segDSLT"   Selected="cbi_Selected">Segmentation (DSLT)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segHMT"    Selected="cbi_Selected">Segmentation (H-Minima Transform)</ComboBoxItem>
+                        <ComboBoxItem Name="cbi_segTH"     Selected="cbi_Selected">Segmentation (Thresholding)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segFF"     Selected="cbi_Selected">Segmentation (Flood Fill)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_SS_th"     Selected="cbi_Selected">Segment Selection (Threshold)</ComboBoxItem>
                         <ComboBoxItem Name="cbi_segD"      Selected="cbi_Selected">Segment Dilation</ComboBoxItem>
@@ -446,6 +471,38 @@
                                     <Grid>
                                         <Button Visibility="Collapsed" x:Name="SM_applyXY_button" Width="80" Height="25" Margin="15,6,0,0" HorizontalAlignment="Left">ApplyXY</Button>
                                         <Button x:Name="SM_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="SM_apply_button_Click">Preview</Button>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+                        </ListBoxItem>
+                        <ListBoxItem x:Name="lbi_Threshold" Visibility="Collapsed">
+                            <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
+                                <GroupBox.Header>
+                                    <Grid>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Thresholding</Label>
+                                        <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
+                                            <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
+                                        </Button>
+                                    </Grid>
+                                </GroupBox.Header>
+                                <StackPanel>
+                                    <Grid Width="Auto" Height="Auto">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="95"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=TH_th_slider}">th</Label>
+                                        <Slider x:Name="TH_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0.5"/>
+                                        <TextBox Name="TH_th_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=TH_th_slider, Path=Value}" TextAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Button x:Name="TH_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="TH_apply_button_Click">Preview</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
@@ -569,7 +626,7 @@
                                         <Slider x:Name="AT_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="100" Minimum="0" Value="14" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="AT_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=AT_block_size_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=AT_C_slider}">C</Label>
-                                        <Slider x:Name="AT_C_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="100" Minimum="-500" Value="-20"/>
+                                        <Slider x:Name="AT_C_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="500" Minimum="-100" Value="20"/>
                                         <TextBox Name="AT_C_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=AT_C_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
@@ -635,24 +692,24 @@
                                         <Slider x:Name="SGL_Z_Correction_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="1" Minimum="0" Value="0.2"/>
                                         <TextBox Name="SGL_Z_Correction_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_Z_Correction_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_minC_slider}">min C</Label>
-                                        <Slider x:Name="SGL_minC_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="0" Minimum="-200" Value="-40"/>
+                                        <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_minC_slider}">max C</Label>
+                                        <Slider x:Name="SGL_minC_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="200" Minimum="0" Value="-40"/>
                                         <TextBox Name="SGL_minC_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_minC_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_maxC_slider}">max C</Label>
-                                        <Slider x:Name="SGL_maxC_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="0" Minimum="-200" Value="0"/>
+                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_maxC_slider}">min C</Label>
+                                        <Slider x:Name="SGL_maxC_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="200" Minimum="0" Value="0"/>
                                         <TextBox Name="SGL_maxC_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_maxC_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_interval_slider}">Interval</Label>
-                                        <Slider x:Name="SGL_interval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="200" Minimum="0" Value="2"/>
+                                        <Slider x:Name="SGL_interval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="0" Minimum="-100" Value="-2"/>
                                         <TextBox Name="SGL_interval_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_interval_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Visibility="Collapsed"  Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_minVol_slider}">minVol</Label>
-                                        <Slider x:Name="SGL_minVol_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="10000" Minimum="0" Value="500" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <Slider x:Name="SGL_minVol_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="10000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGL_minVol_txt" Visibility="Collapsed" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_minVol_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_minInvalidStructureArea_slider}">Tolerance</Label>
-                                        <Slider x:Name="SGL_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="10000" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <Label Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_minInvalidStructureArea_slider}">ValidTH</Label>
+                                        <Slider x:Name="SGL_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="10000" Minimum="0" Value="500" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGL_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGL_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="8" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGL_Closing_slider}">Closing</Label>
@@ -717,7 +774,7 @@
                                         <TextBox Name="ADTHLK_Z_Correction_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=ADTHLK_Z_Correction_slider, Path=Value}" TextAlignment="Right"/>
 
                                         <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=ADTHLK_C_slider}">C</Label>
-                                        <Slider x:Name="ADTHLK_C_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="10" Minimum="-200" Value="-20"/>
+                                        <Slider x:Name="ADTHLK_C_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="200" Minimum="0" Value="20"/>
                                         <TextBox Name="ADTHLK_C_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=ADTHLK_C_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <Grid>
@@ -784,6 +841,63 @@
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="SGH_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="SGH_apply_button_Click">Apply</Button>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+                        </ListBoxItem>
+                        <ListBoxItem x:Name="lbi_Segmentation_TH" Visibility="Collapsed">
+                            <GroupBox Width="Auto" Height="Auto" Margin="0,5,3,0">
+                                <GroupBox.Header>
+                                    <Grid>
+                                        <Label Height="20" Margin="0,0,0,0" HorizontalAlignment="Left">Segmentation (H-Minima Transform)</Label>
+                                        <Button MinHeight="15" MinWidth="15" Width="10" Height="10" Margin="0,1,0,0" HorizontalAlignment="Right" Click="FilterPanelCloseButton_Click">
+                                            <Path Width="7" Height="7" Data="M 0 7 L 7 0 M 7 7 L 0 0" SnapsToDevicePixels="False" Stroke="#FFFFFF" StrokeThickness="2"/>
+                                        </Button>
+                                    </Grid>
+                                </GroupBox.Header>
+                                <StackPanel>
+                                    <Grid Width="Auto" Height="Auto">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="95"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_minth_slider}">min th</Label>
+                                        <Slider x:Name="SGT_minth_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="1" Minimum="0" Value="0"/>
+                                        <TextBox Name="SGT_minth_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_minth_slider, Path=Value}" TextAlignment="Right"/>
+
+                                        <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_maxth_slider}">max th</Label>
+                                        <Slider x:Name="SGT_maxth_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="1" Minimum="0" Value="20"/>
+                                        <TextBox Name="SGT_maxth_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_maxth_slider, Path=Value}" TextAlignment="Right"/>
+
+                                        <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_interval_slider}">Interval</Label>
+                                        <Slider x:Name="SGT_interval_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.02"/>
+                                        <TextBox Name="SGT_interval_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_interval_slider, Path=Value}" TextAlignment="Right"/>
+
+                                        <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_minVol_slider}">minVol</Label>
+                                        <Slider Visibility="Collapsed" x:Name="SGT_minVol_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Visibility="Collapsed" Name="SGT_minVol_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_minVol_slider, Path=Value}" TextAlignment="Right"/>
+
+                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_minInvalidStructureArea_slider}">Tolerance</Label>
+                                        <Slider x:Name="SGT_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="10000" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Name="SGT_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
+
+                                        <Label Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_Closing_slider}">Closing</Label>
+                                        <Slider x:Name="SGT_Closing_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="50" Minimum="0" Value="2" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                                        <TextBox Name="SGT_Closing_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_Closing_slider, Path=Value}" TextAlignment="Right"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Button x:Name="SGT_apply_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="SGT_apply_button_Click">Apply</Button>
                                     </Grid>
                                 </StackPanel>
                             </GroupBox>
