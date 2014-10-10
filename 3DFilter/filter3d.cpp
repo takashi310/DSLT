@@ -2854,6 +2854,7 @@ void Filter3D::binarySegmentationLow(const float *data, float th_val, int connec
 	delete [] inv_sum;
 	checkCudaErrors( cudaMemcpy(d_Output, data, imageZ * imageW * imageH * sizeof(float), cudaMemcpyHostToDevice) );
 	
+	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_Seg2) );
 
 	checkCudaErrors( cudaDeviceSynchronize() );
