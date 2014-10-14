@@ -176,6 +176,8 @@ namespace TestGPUclass {
 		static void getGaussianFilter1D(float filter[], int ksize);
 		static void getMeanFilter1D(float filter[], int ksize);
 		bool set3DImage_MultiTIFF(const char filename[], int channel = 0, int z_scaling = SC_NONE);
+		bool loadSegData(const char filename[]);
+		bool saveSegData(const char filename[]);
 		void switchZScaling(int type);
 		void switchChannel(int channel);
 		int getChNum();
@@ -249,7 +251,7 @@ namespace TestGPUclass {
 		void generateHeightMapCPU(int blocksize_xy, int blocksize_z, float th, int thresholdType);
 		void clearHeightMap();
 		void heightMapBasedProjection(float *data, float offset, float depth, int range, float th);
-		void heightMapSimpleProjection(float *data, float offset, float depth, int range, bool isBinarize, float th, bool dmap_isEnable, int d_range);
+		void heightMapSimpleProjection(float *data, float offset, float depth, int range, bool isBinarize, float th, bool dmap_isEnable, int d_range, bool seg_show = false, int seg_minVol = 0);
 		void simpleProjection(float *data, float bc_max, float bc_min, int slice_id, int range, bool seg_show = false, int seg_minVol = 0, bool dmap_isEnable = false, float d_coefficient = 1.0f, float d_order = 1.0f, bool zbc_isEnable = false, int zbc_channel = 0, float zbc_coefficient = 1.0f, float zbc_order = 1.0f);
 		void setBufferYZ(float *data, int currentX, float bc_max, float bc_min, bool seg_show = false, int seg_minVol = 0, bool hmap_isVisible = false, int hmap_offset = 0.0f, int hmap_range = 0.0f, bool dmap_isEnable = false, float d_coefficient = 1.0f, float d_order = 1.0f, bool zbc_isEnable = false, int zbc_channel = 0, float zbc_coefficient = 1.0f, float zbc_order = 1.0f);
 		void setBufferZX(float *data, int currentY, float bc_max, float bc_min, bool seg_show = false, int seg_minVol = 0, bool hmap_isVisible = false, int hmap_offset = 0.0f, int hmap_range = 0.0f, bool dmap_isEnable = false, float d_coefficient = 1.0f, float d_order = 1.0f, bool zbc_isEnable = false, int zbc_channel = 0, float zbc_coefficient = 1.0f, float zbc_order = 1.0f);
@@ -279,6 +281,8 @@ namespace TestGPUclass {
 		void drawIcoSphere(int radius, int level);
 
 		void selectSegment(int x, int y, int z);
+		void selectSegment(int id);
+		int getFrontSegID(int x, int y, float offset, float depth, int range, int seg_minVol = 0);
 		void selectAllSegments();
 		void deselectSegment();
 		void autoSelectSegmentsTH(float th);

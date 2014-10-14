@@ -95,6 +95,24 @@ bool Class1::saveDst3DImage(System::String ^filename)
 	return true;
 }
 
+bool Class1::saveSegments(System::String ^filename)
+{
+	const char *c_str;
+	marshal_context^ ctx = gcnew marshal_context();
+	c_str = ctx->marshal_as<const char *>(filename);
+	flt3d->saveSegData(c_str);
+	return true;
+}
+
+bool Class1::loadSegments(System::String ^filename)
+{
+	const char *c_str;
+	marshal_context^ ctx = gcnew marshal_context();
+	c_str = ctx->marshal_as<const char *>(filename);
+	flt3d->loadSegData(c_str);
+	return true;
+}
+
 void Class1::hsv2rgb(float h, float s, float v, unsigned int %r, unsigned int %g, unsigned int %b)
 {
 	int hi = (int)(h / 60.0f) % 6;
@@ -143,7 +161,7 @@ bool Class1::saveSrc2DImage(System::String ^filename)
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
 		}
 	}
 	else{
@@ -184,7 +202,7 @@ bool Class1::saveDst2DImage(System::String ^filename)
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
 		}
 	}
 	else{
@@ -369,7 +387,7 @@ unsigned long Class1::getImageDataArrayXY([Runtime::InteropServices::Out] IntPtr
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
 		}
 	}
 	else{
@@ -451,7 +469,7 @@ unsigned long Class1::getDstImageDataArrayXY([Runtime::InteropServices::Out] Int
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, false, 0);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
 		}
 	}
 	else{
@@ -837,6 +855,14 @@ void Class1::selectSegment(int x, int y, int z)
 	if(isEmpty)return;
 
 	flt3d->selectSegment(x, y, z);
+}
+
+void Class1::selectSegment_OrthoXY(int x, int y, int z)
+{
+	if(isEmpty)return;
+
+	if(!flt3d->hmap_empty() && hmap_use)flt3d->selectSegment(flt3d->getFrontSegID(x, y, hmapoffset, hmap_depth, hmap_range, seg_minVol));
+	else flt3d->selectSegment(x, y, z);
 }
 
 void Class1::selectAllSegments()

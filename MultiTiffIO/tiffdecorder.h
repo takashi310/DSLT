@@ -434,6 +434,7 @@ namespace tiffhndl{
 		bool hyperstack;
 		int width;
 		int height;
+		int datatype;
 		
 		bool calibrated;
 		bool loaded;

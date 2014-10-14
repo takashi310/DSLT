@@ -2157,6 +2157,7 @@ Calibration FileOpener::getCalibration(FileInfo &fi){
 
 	cal.width = fi.width;
 	cal.height = fi.height;
+	cal.datatype = fi.fileType;
 
 	if (fi.pixelWidth>0.0 && fi.unit!=NULL) {
 		cal.pixelWidth = fi.pixelWidth;
@@ -2615,6 +2616,7 @@ bool FileOpener::getXYZStackFloat(float *dst, bool normalize, int channel, int f
 	
 	return true;
 }
+
 /*
 int _tmain(int argc, _TCHAR* argv[]){
 

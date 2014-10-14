@@ -24,7 +24,7 @@ namespace multif{
 		unsigned long GetDataSize();
 		bool GetImageData(char data[]);
 		bool OpenTiff(const char filename[]);
-		static bool SaveImageData(const char filename[], char data[], int width, int height, int nSlices, int bitspersamples, int samplesperpixel);
+		static bool SaveImageData(const char filename[], char data[], int width, int height, int nSlices, int bitspersamples, int samplesperpixel, bool sign = false);
 		static bool SaveImageDataSingle(const char filename[], char data[], int width, int height, int bitspersamples, int samplesperpixel);
 		bool empty();
 	};

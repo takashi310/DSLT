@@ -374,6 +374,122 @@ bool Filter3D::set3DImage_MultiTIFF(const char filename[], int channel, int z_sc
 	return true;
 }
 
+bool Filter3D::loadSegData(const char filename[])
+{
+	if(isEmpty) return false;
+
+	tiffhndl::FileOpener fo(filename);
+	if(fo.empty()){
+		printf("loadSegData: cannot open file\n");
+		clear();
+		return false;
+	}
+
+	tiffhndl::Calibration calib = fo.getImageCalibration();
+	if(imageW != calib.width || imageH != calib.height || imageZ != calib.slices || (calib.datatype != tiffhndl::FileInfo::GRAY16_SIGNED && calib.datatype != tiffhndl::FileInfo::GRAY16_UNSIGNED)) return false;
+	short int *tmp = new short int[imageW*imageH*imageZ];
+	fo.getXYZStackRaw((tiffhndl::byte *)tmp);
+
+	int maxid = -1;
+	for(int z = 0; z < imageZ; z++){
+		for(int y = 0; y < imageH; y++){
+			for(int x = 0; x < imageW; x++){
+				if(maxid < tmp[z*imageH*imageW + y*imageW + x])maxid = tmp[z*imageH*imageW + y*imageW + x];
+			}
+		}
+	}
+
+	cout << maxid << endl;
+
+	if(maxid >= 0){
+
+		segments->clear();
+		segments->resize(maxid + 1);
+
+		for(int z = 0; z < imageZ; z++){
+			for(int y = 0; y < imageH; y++){
+				for(int x = 0; x < imageW; x++){
+					segdata[z*imageH*imageW + y*imageW + x] = SEGMENT_BLANK;
+					if(tmp[z*imageH*imageW + y*imageW + x] >= 0)(*segments)[tmp[z*imageH*imageW + y*imageW + x]].push_back(Point3i(x, y, z));
+				}
+			}
+		}
+
+		std::vector< std::vector<cv::Point3i> >::iterator ite = segments->begin();
+		while(ite != segments->end()){
+			if(ite->empty())ite = segments->erase(ite);
+			else ite++;
+		}
+
+		seg_bbox->clear();
+		for(int i = 0; i < segments->size(); i++){
+			int minx, miny, minz;
+			int maxx, maxy, maxz;
+			minx = imageW; miny = imageH; minz = imageZ;
+			maxx = 0; maxy = 0; maxz = 0;
+
+			for(int j = 0; j < (*segments)[i].size(); j++){
+				int x = (*segments)[i][j].x;
+				int y = (*segments)[i][j].y;
+				int z = (*segments)[i][j].z;
+
+				segdata[z*imageH*imageW + y*imageW + x] = i;
+
+				if(minx > x)minx = x;
+				if(miny > y)miny = y;
+				if(minz > z)minz = z;
+				if(maxx < x)maxx = x;
+				if(maxy < y)maxy = y;
+				if(maxz < z)maxz = z;
+			}
+
+			Box3D bbox;
+			bbox.x = minx; bbox.y = miny; bbox.z = minz;
+			bbox.width  = maxx - minx + 1;
+			bbox.height = maxy - miny + 1;
+			bbox.depth  = maxz - minz + 1;
+
+			seg_bbox->push_back(bbox);
+		}
+
+		resetSegmentColors();
+
+		selected_segment->clear();
+	}
+
+	delete [] tmp;
+
+	return true;
+}
+
+bool Filter3D::saveSegData(const char filename[])
+{
+	if(segments->size() == 0)return false;
+
+	string fn = filename;
+	size_t pos = fn.find_last_of('.');
+	if(pos != string::npos)fn = fn.substr(0, pos);
+
+	stringstream ss;
+	ss << fn.c_str() << ".tif";
+	
+	short int *tmp = new short int[imageW*imageH*imageZ];
+
+	for(int z = 0; z < imageZ; z++){
+		for(int y = 0; y < imageH; y++){
+			for(int x = 0; x < imageW; x++){
+				tmp[z*imageH*imageW + y*imageW + x] = (short)segdata[z*imageH*imageW + y*imageW + x];
+			}
+		}
+	}
+
+	bool res = multif::MultiTiffIO::SaveImageData(ss.str().c_str(), (char *)tmp, imageW, imageH, imageZ, sizeof(short)*8, 1, true);
+
+	delete [] tmp;
+	
+	return res;
+}
+
 void Filter3D::switchZScaling(int type)
 {
 	if(isEmpty)return;
@@ -688,8 +804,13 @@ void Filter3D::adjustAirspacesBrightness(int ar_dataCh, int blocksize, int angle
 
 bool Filter3D::saveDst3DImage(const char filename[])
 {
+	string fn = filename;
+	size_t pos = fn.find_last_of('.');
+	if(pos != string::npos)fn = fn.substr(0, pos);
+
 	stringstream ss;
-	ss << filename << ".tif";
+	ss << fn.c_str() << ".tif";
+
 	return multif::MultiTiffIO::SaveImageData(ss.str().c_str(), (char *)dstdata, imageW, imageH, imageZ, sizeof(float)*8, 1);
 }
 
@@ -3957,8 +4078,15 @@ void Filter3D::saveRGBimageSeries(const char *fname, float bc_max, float bc_min)
 		simpleProjection(imgdata, bc_max, bc_min, i, 0, true);
 		memcpy(rgbimagestack + imageW*imageH*3*i, bufXY, imageW*imageH*3);
 	}
+		
+	string fn = fname;
+	size_t pos = fn.find_last_of('.');
+	if(pos != string::npos)fn = fn.substr(0, pos);
+
 	stringstream ss;
-	ss << fname << "_rgb" << ".tif";
+	ss << fn.c_str() << "_view" << ".tif";
+	
+
 	multif::MultiTiffIO::SaveImageData(ss.str().c_str(), (char *)rgbimagestack, imageW, imageH, imageZ, sizeof(unsigned char)*8, 3);
 
 	delete [] rgbimagestack;
@@ -5119,17 +5247,27 @@ void Filter3D::heightMapBasedProjection(float *data, float offset, float depth, 
 
 }
 
-void Filter3D::heightMapSimpleProjection(float *data, float offset, float depth, int range, bool isBinarize, float th, bool dmap_isEnable, int d_range)
+void Filter3D::heightMapSimpleProjection(float *data, float offset, float depth, int range, bool isBinarize, float th, bool dmap_isEnable, int d_range, bool seg_show, int seg_minVol)
 {
 	if(isEmpty)return;
 
 	unsigned int x, y;
 	float d;
 
+	if(segments == NULL || seg_bbox == NULL || segdata == NULL || selected_segment == NULL) seg_show = false;
+	if(segments->empty() || seg_bbox->empty()) seg_show = false;
+
+	vector<char> seg_isSelected;
+	if(seg_show){
+		seg_isSelected.resize(segments->size(), 0);
+		for(unsigned int i = 0; i < selected_segment->size(); i++)seg_isSelected[(*selected_segment)[i]] = 1;
+	}
+
 	for(y = 0; y < imageH; y++){
 		for(x = 0; x < imageW; x++){
 			float proj_max = -1.0f;
 			float proj_depth = FLT_MAX;
+			int front_seg = SEGMENT_BLANK;
 			for(d = depth; d <= depth + range; d += 1.0f){
 				Point3f p;
 				Point3i rp;
@@ -5140,7 +5278,9 @@ void Filter3D::heightMapSimpleProjection(float *data, float offset, float depth,
 				p.y = (float)y;
 				p.z = (float)hmap[y*imageW + x] + 1.0f * d + offset;
 
-				if(p.z < 0 || p.z > imageZ-1){
+				if(p.z < 0)continue;
+
+				if(p.z > imageZ-1){
 					if(proj_max < 0.0f)proj_max = 0.0f;
 					break;
 				}
@@ -5148,6 +5288,13 @@ void Filter3D::heightMapSimpleProjection(float *data, float offset, float depth,
 				rp.x = (int)(p.x);
 				rp.y = (int)(p.y);
 				rp.z = (int)(p.z);
+
+				if(seg_show){
+					if(segdata[rp.z*imageH*imageW + rp.y*imageW + rp.x] >= 0){
+						front_seg = segdata[rp.z*imageH*imageW + rp.y*imageW + rp.x];
+						break;
+					}
+				}
 
 				if(rp.z == imageZ - 1)rp.z--;
 
@@ -5234,6 +5381,22 @@ void Filter3D::heightMapSimpleProjection(float *data, float offset, float depth,
 					bufXY[y*imageW*3 + x*3    ] = (unsigned int)(proj_max * 255);
 					bufXY[y*imageW*3 + x*3 + 1] = (unsigned int)(proj_max * 255);
 					bufXY[y*imageW*3 + x*3 + 2] = (unsigned int)(proj_max * 255);
+				}
+
+				if(seg_show && front_seg >= 0 && segments->size() > front_seg){
+					unsigned int r, g, b;
+					if((*segments)[front_seg].size() > seg_minVol){
+						hsv2rgb((*seg_colors)[front_seg], 1.0f, 1.0f, r, g, b);
+						if(seg_isSelected[front_seg] == 1){
+							r = r + 50 <= 255 ? r + 50: 255;
+							g = g + 50 <= 255 ? g + 50: 255;
+							b = b + 50 <= 255 ? b + 50: 255;
+						}
+						else {r /= 3; g /= 3; b /= 3;}
+						bufXY[y*imageW*3 + x*3    ] = (unsigned char)r;
+						bufXY[y*imageW*3 + x*3 + 1] = (unsigned char)g;
+						bufXY[y*imageW*3 + x*3 + 2] = (unsigned char)b;
+					}
 				}
 			}
 		}
@@ -5354,24 +5517,6 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 		}
 	}
 
-	if(hmap_isVisible && !hmapEmpty){
-		for(unsigned int i = 0; i < imageH; i++){
-			int z = (int)(hmap[i*imageW + currentX] + hmap_offset + hmap_range);
-			if(z < 0)z = 0;
-			if(z > imageZ-1)z = imageZ-1;
-			bufYZ[i*imageZ*3 + z*3    ] = 0;
-			bufYZ[i*imageZ*3 + z*3 + 1] = 255;
-			bufYZ[i*imageZ*3 + z*3 + 2] = 0;
-
-			z = (int)(hmap[i*imageW + currentX] + hmap_offset);
-			if(z < 0)z = 0;
-			if(z > imageZ-1)z = imageZ-1;
-			bufYZ[i*imageZ*3 + z*3    ] = 255;
-			bufYZ[i*imageZ*3 + z*3 + 1] = 0;
-			bufYZ[i*imageZ*3 + z*3 + 2] = 255;
-		}
-	}
-
 	if(seg_colors->size() == segments->size() && seg_colors->size() > 0 && seg_show){
 		unsigned int r, g, b;
 		vector<char> seg_isSelected(segments->size(), 0);
@@ -5397,6 +5542,25 @@ void Filter3D::setBufferYZ(float *data, int currentX, float bc_max, float bc_min
 			}
 		}
 	}
+
+	if(hmap_isVisible && !hmapEmpty){
+		for(unsigned int i = 0; i < imageH; i++){
+			int z = (int)(hmap[i*imageW + currentX] + hmap_offset + hmap_range);
+			if(z < 0)z = 0;
+			if(z > imageZ-1)z = imageZ-1;
+			bufYZ[i*imageZ*3 + z*3    ] = 0;
+			bufYZ[i*imageZ*3 + z*3 + 1] = 255;
+			bufYZ[i*imageZ*3 + z*3 + 2] = 0;
+
+			z = (int)(hmap[i*imageW + currentX] + hmap_offset);
+			if(z < 0)z = 0;
+			if(z > imageZ-1)z = imageZ-1;
+			bufYZ[i*imageZ*3 + z*3    ] = 255;
+			bufYZ[i*imageZ*3 + z*3 + 1] = 0;
+			bufYZ[i*imageZ*3 + z*3 + 2] = 255;
+		}
+	}
+
 }
 
 void Filter3D::setBufferZX(float *data, int currentY, float bc_max, float bc_min, bool seg_show, int seg_minVol, bool hmap_isVisible, int hmap_offset, int hmap_range, bool dmap_isEnable, float d_coefficient, float d_order, bool zbc_isEnable, int zbc_channel, float zbc_coefficient, float zbc_order)
@@ -5442,24 +5606,6 @@ void Filter3D::setBufferZX(float *data, int currentY, float bc_max, float bc_min
 		}
 	}
 
-	if(hmap_isVisible && !hmapEmpty){
-		for(unsigned int i = 0; i < imageW; i++){
-			int z = (int)(hmap[currentY*imageW + i] + hmap_offset + hmap_range);
-			if(z < 0)z = 0;
-			if(z > imageZ-1)z = imageZ-1;
-			bufZX[z*imageW*3 + i*3    ] = 0;
-			bufZX[z*imageW*3 + i*3 + 1] = 255;
-			bufZX[z*imageW*3 + i*3 + 2] = 0;
-
-			z = (int)(hmap[currentY*imageW + i] + hmap_offset);
-			if(z < 0)z = 0;
-			if(z > imageZ-1)z = imageZ-1;
-			bufZX[z*imageW*3 + i*3    ] = 255;
-			bufZX[z*imageW*3 + i*3 + 1] = 0;
-			bufZX[z*imageW*3 + i*3 + 2] = 255;
-		}
-	}
-	
 	if(seg_colors->size() == segments->size() && seg_colors->size() > 0 && seg_show){
 		unsigned int r, g, b;
 		vector<char> seg_isSelected(segments->size(), 0);
@@ -5483,6 +5629,24 @@ void Filter3D::setBufferZX(float *data, int currentY, float bc_max, float bc_min
 					}
 				}
 			}
+		}
+	}
+
+	if(hmap_isVisible && !hmapEmpty){
+		for(unsigned int i = 0; i < imageW; i++){
+			int z = (int)(hmap[currentY*imageW + i] + hmap_offset + hmap_range);
+			if(z < 0)z = 0;
+			if(z > imageZ-1)z = imageZ-1;
+			bufZX[z*imageW*3 + i*3    ] = 0;
+			bufZX[z*imageW*3 + i*3 + 1] = 255;
+			bufZX[z*imageW*3 + i*3 + 2] = 0;
+
+			z = (int)(hmap[currentY*imageW + i] + hmap_offset);
+			if(z < 0)z = 0;
+			if(z > imageZ-1)z = imageZ-1;
+			bufZX[z*imageW*3 + i*3    ] = 255;
+			bufZX[z*imageW*3 + i*3 + 1] = 0;
+			bufZX[z*imageW*3 + i*3 + 2] = 255;
 		}
 	}
 	
@@ -6166,6 +6330,60 @@ void Filter3D::selectSegment(int x, int y, int z)
 	}
 
 	cout << selected_segment->size() << endl;
+}
+
+void Filter3D::selectSegment(int id)
+{
+	if(isEmpty)return;
+	if(segments == NULL || seg_bbox == NULL || segdata == NULL || selected_segment == NULL)return;
+	if(segments->empty() || seg_bbox->empty())return;
+
+	if(id >= 0 && id < segments->size()){
+		vector<int>::iterator ite = find(selected_segment->begin(), selected_segment->end(), id);
+		if(ite == selected_segment->end())selected_segment->push_back(id);
+		else selected_segment->erase(ite);
+
+	}
+
+	cout << selected_segment->size() << endl;
+}
+
+int Filter3D::getFrontSegID(int x, int y, float offset, float depth, int range, int seg_minVol)
+{
+	int front_seg = SEGMENT_BLANK;
+
+	if(isEmpty)return front_seg;
+	if(segments == NULL || seg_bbox == NULL || segdata == NULL || selected_segment == NULL)return front_seg;
+	if(segments->empty() || seg_bbox->empty())return front_seg;
+
+	for(float d = depth; d <= depth + range; d += 1.0f){
+		
+		Point3f p;
+		Point3i rp;
+		float proj_tmp;
+		float d_tmp;
+
+		p.x = (float)x;
+		p.y = (float)y;
+		p.z = (float)hmap[y*imageW + x] + 1.0f * d + offset;
+
+		if(p.z < 0)continue;
+
+		if(p.z > imageZ-1)break;
+		
+		rp.x = (int)(p.x);
+		rp.y = (int)(p.y);
+		rp.z = (int)(p.z);
+
+		int id = segdata[rp.z*imageH*imageW + rp.y*imageW + rp.x];
+		if(id >= 0 && segments->size() > id){
+			if((*segments)[id].size() > seg_minVol)front_seg = id;
+			break;
+		}
+
+	}
+
+	return front_seg;
 }
 
 void Filter3D::selectAllSegments()

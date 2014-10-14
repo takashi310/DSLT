@@ -650,6 +650,36 @@ namespace WpfApplication1
             }
         }
 
+        private void LoadSegments_Click(object sender, RoutedEventArgs e)
+        {
+            if (c1.empty()) return;
+
+            var ofd = new System.Windows.Forms.OpenFileDialog();
+            ofd.FileName = "";
+            ofd.DefaultExt = "*.tif";
+            ofd.Title = "Load Segments";
+            if (ofd.ShowDialog().ToString().Equals("OK"))
+            {
+                c1.loadSegments(ofd.FileName);
+                updateImg();
+            }
+        }
+
+        private void SaveSegments_Click(object sender, RoutedEventArgs e)
+        {
+            if (c1.empty()) return;
+
+            var ofd = new System.Windows.Forms.SaveFileDialog();
+            ofd.FileName = "";
+            //ofd.DefaultExt = "*.tif";
+            ofd.Title = "Save Segments";
+            if (ofd.ShowDialog().ToString().Equals("OK"))
+            {
+                c1.saveSegments(ofd.FileName);
+                updateImg();
+            }
+        }
+
         private void Close_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             this.Close();
@@ -749,6 +779,16 @@ namespace WpfApplication1
 
         }
 
+        private void segmentSelectionXY(int x, int y, int z)
+        {
+            if (SG_cb.IsChecked.Equals(true))
+            {
+                c1.selectSegment_OrthoXY(x, y, z);
+                updateImg();
+            }
+
+        }
+
         private void line_xy_MouseAction(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) return;
@@ -762,7 +802,8 @@ namespace WpfApplication1
                 int x = (int)(e.GetPosition(ortho_xy).X / ortho_xy.ActualWidth * (double)imageW);
                 int y = (int)(e.GetPosition(ortho_xy).Y / ortho_xy.ActualHeight * (double)imageH);
                 int z = (int)Z_slider.Value;
-                segmentSelection(x, y, z);
+                segmentSelectionXY(x, y, z);
+                //segmentSelection(x, y, z);
             }
         }
 
@@ -813,7 +854,8 @@ namespace WpfApplication1
                 int x = (int)(e.GetPosition(dst_ortho_xy).X / dst_ortho_xy.ActualWidth * (double)imageW);
                 int y = (int)(e.GetPosition(dst_ortho_xy).Y / dst_ortho_xy.ActualHeight * (double)imageH);
                 int z = (int)Z_slider.Value;
-                segmentSelection(x, y, z);
+                segmentSelectionXY(x, y, z);
+                //segmentSelection(x, y, z);
             }
         }
 
@@ -864,7 +906,8 @@ namespace WpfApplication1
                 int x = (int)(e.GetPosition(((Image)sender)).X / ((Image)sender).ActualWidth * (double)imageW);
                 int y = (int)(e.GetPosition(((Image)sender)).Y / ((Image)sender).ActualHeight * (double)imageH);
                 int z = (int)Z_slider.Value;
-                segmentSelection(x, y, z);
+                segmentSelectionXY(x, y, z);
+                //segmentSelection(x, y, z);
             }
         }
 
@@ -1148,16 +1191,6 @@ namespace WpfApplication1
 			updateImg();
 		}
 
-        private void H_block_size_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-
-        }
-
-        private void H_Z_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-
-        }
-
         private void H_generate_button_Click(object sender, RoutedEventArgs e)
         {
             if (c1.empty()) return;
@@ -1193,31 +1226,20 @@ namespace WpfApplication1
 			updateImg();
 		}
 
-        private void H_th_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-
-        }
-
-        private void H_offset_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            c1.setHmapOffset((float)H_offset_slider.Value);
-            updateImg();
-        }
-
         private void SaveDest2DImage_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             Console.WriteLine("COMMAND");
         }
 
-        private void H_depth_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void H_projParamsChanged(object sender, RoutedEventArgs e)
         {
-            c1.setHmapProjDepth((float)H_depth_slider.Value);
-            updateImg();
-        }
-
-        private void H_range_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
+            c1.setHmapActivity(H_hproj_cb.IsChecked.Value);
+            if (H_normal_rb.IsChecked.Value) c1.setProjectionMode(0);
+            else c1.setProjectionMode(1);
+            c1.setHmapOffset((float)H_offset_slider.Value);
             c1.setHmapProjRange((float)H_range_slider.Value);
+            c1.setHmapProjDepth((float)H_depth_slider.Value);
+            c1.setProjectionThreshold((float)H_proj_th_slider.Value);
             updateImg();
         }
 
@@ -1232,13 +1254,7 @@ namespace WpfApplication1
             c1.generateDepthMap();
         }
 
-        private void H_proj_th_slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            c1.setProjectionThreshold((float)H_proj_th_slider.Value);
-            updateImg();
-        }
-
-		private void DC_cb_CheckChanged(object sender, RoutedEventArgs e)
+        private void DC_cb_CheckChanged(object sender, RoutedEventArgs e)
 		{
 			updateImg();
 		}
@@ -1960,8 +1976,6 @@ namespace WpfApplication1
            
         }
 
-       
-        
 
     }
 }

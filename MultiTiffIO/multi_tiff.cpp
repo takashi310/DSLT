@@ -289,7 +289,7 @@ bool MultiTiffIO::GetImageData(char data[])
 	return true;
 }
 
-bool MultiTiffIO::SaveImageData(const char filename[], char data[], int width, int height, int nSlices, int bitspersamples, int samplesperpixel)
+bool MultiTiffIO::SaveImageData(const char filename[], char data[], int width, int height, int nSlices, int bitspersamples, int samplesperpixel, bool sign)
 {
 	int32	tifsize;
 	uint16	photometric, fillorder, compression;
@@ -343,7 +343,8 @@ bool MultiTiffIO::SaveImageData(const char filename[], char data[], int width, i
 		TIFFSetField(wtif, TIFFTAG_ROWSPERSTRIP, height);
 		//if(TIFFGetField(image, TIFFTAG_RESOLUTIONUNIT, &resunit) != 0)		TIFFSetField(wtif, TIFFTAG_RESOLUTIONUNIT, &resunit);
 		if(bitspersamples == 32)TIFFSetField(wtif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
-		if(bitspersamples == 16)TIFFSetField(wtif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+		if(bitspersamples == 16 && sign)TIFFSetField(wtif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_INT);
+		if(bitspersamples == 16 && !sign)TIFFSetField(wtif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
 		if(bitspersamples == 8)TIFFSetField(wtif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
 		//if(TIFFGetField(image, TIFFTAG_DATATYPE, &datatype) != 0)				TIFFSetField(wtif, TIFFTAG_DATATYPE, &datatype);
 

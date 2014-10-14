@@ -7,9 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles.xaml"/>
-                <ResourceDictionary>
-                    <cnv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-                </ResourceDictionary>
+                
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -33,9 +31,10 @@
         <Menu VerticalAlignment="Top" DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Command="Open" Header="_Open"/>
+                <MenuItem Header="_Load_Segments" Click="LoadSegments_Click"/>
                 <Separator/>
                 <MenuItem Command="Save" Header="_Save"/>
-                <MenuItem Command="SaveAs" Header="_Save As..."/>
+                <MenuItem Header="_Save_Segments" Click="SaveSegments_Click"/>
                 <Separator/>
                 <MenuItem Command="Close" Header="_Exit"/>
             </MenuItem>
@@ -213,16 +212,16 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_block_size_slider}">Radius</Label>
-                                        <Slider x:Name="H_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="64" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_block_size_slider_ValueChanged" />
+                                        <Slider x:Name="H_block_size_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="0" Margin="0" Maximum="64" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="H_block_size_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="0" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_block_size_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="1" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_SmLv_slider}">Smooth Lv</Label>
                                         <Slider x:Name="H_SmLv_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="1" Margin="0" Maximum="10" Minimum="1" Value="1" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="H_SmLv_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="1" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_SmLv_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="2" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_Z_slider}">Z</Label>
-                                        <Slider x:Name="H_Z_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="64" Minimum="0" Value="4" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="H_Z_slider_ValueChanged" />
+                                        <Slider x:Name="H_Z_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="2" Margin="0" Maximum="64" Minimum="0" Value="4" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="H_Z_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="2" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_Z_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_th_slider}">Threshold</Label>
-                                        <Slider x:Name="H_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.25" ValueChanged="H_th_slider_ValueChanged" />
+                                        <Slider x:Name="H_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.25"/>
                                         <TextBox Name="H_th_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_th_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_offset_slider}">Offset</Label>
                                     </Grid>
@@ -230,7 +229,7 @@
                                         <Button x:Name="H_generate_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_generate_button_Click">Generate</Button>
                                         <Button x:Name="H_clear_button" Width="80" Height="25" Margin="12,6,15,0" HorizontalAlignment="Left" Click="H_clear_button_Click">Clear</Button>
                                     </Grid>
-                                    <CheckBox x:Name="H_hproj_cb" IsChecked="False" Height="20" Margin="12,15,0,0">Use Hmap for Z Projection</CheckBox>
+                                    <CheckBox x:Name="H_hproj_cb" IsChecked="False" Height="20" Margin="12,15,0,0" Checked="H_projParamsChanged" Unchecked="H_projParamsChanged">Use Hmap for Z Projection</CheckBox>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>
@@ -252,16 +251,16 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_offset_slider}">Offset</Label>
-                                        <Slider x:Name="H_offset_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_offset_slider_ValueChanged" />
+                                        <Slider x:Name="H_offset_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_projParamsChanged" />
                                         <TextBox Name="H_offset_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_offset_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_depth_slider}">Depth</Label>
-                                        <Slider x:Name="H_depth_slider" Visibility="Collapsed" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_depth_slider_ValueChanged" />
+                                        <Slider x:Name="H_depth_slider" Visibility="Collapsed" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="100" Minimum="-100" Value="0" ValueChanged="H_projParamsChanged" />
                                         <TextBox Name="H_depth_txt" Visibility="Collapsed" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_depth_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Grid.Column="0" Grid.Row="6" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_range_slider}">Range</Label>
-                                        <Slider x:Name="H_range_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_range_slider_ValueChanged" />
+                                        <Slider x:Name="H_range_slider" IsEnabled="False" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="6" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_projParamsChanged" />
                                         <TextBox Name="H_range_txt" IsEnabled="False" Width="30" Height="20" Grid.Column="2" Grid.Row="6" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_range_slider, Path=Value}" TextAlignment="Right"/>
                                         <Label Visibility="Collapsed" Grid.Column="0" Grid.Row="7" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_proj_th_slider}">TH(Proj)</Label>
-                                        <Slider x:Name="H_proj_th_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_proj_th_slider_ValueChanged" />
+                                        <Slider x:Name="H_proj_th_slider" Visibility="Collapsed" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="7" Margin="0" Maximum="1" Minimum="0" Value="0" ValueChanged="H_projParamsChanged" />
                                         <TextBox Name="H_proj_th_txt" Visibility="Collapsed" Width="30" Height="20" Grid.Column="2" Grid.Row="7" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_proj_th_slider, Path=Value}" TextAlignment="Right"/>
                                     </Grid>
                                     <CheckBox x:Name="H_crop_cb" IsChecked="False" Height="20" Margin="12,15,0,0" Checked="H_crop_ValueChanged" Unchecked="H_crop_ValueChanged">Cropping</CheckBox>
@@ -831,7 +830,7 @@
                                         <Slider Visibility="Collapsed" x:Name="SGH_minVol_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Visibility="Collapsed" Name="SGH_minVol_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_minVol_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_minInvalidStructureArea_slider}">Tolerance</Label>
+                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGH_minInvalidStructureArea_slider}">ValidTH</Label>
                                         <Slider x:Name="SGH_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="10000" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGH_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGH_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 
@@ -888,7 +887,7 @@
                                         <Slider Visibility="Collapsed" x:Name="SGT_minVol_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="4" Margin="0" Maximum="10000" Minimum="0" Value="0" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Visibility="Collapsed" Name="SGT_minVol_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="4" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_minVol_slider, Path=Value}" TextAlignment="Right"/>
 
-                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_minInvalidStructureArea_slider}">Tolerance</Label>
+                                        <Label Grid.Column="0" Grid.Row="5" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SGT_minInvalidStructureArea_slider}">ValidTH</Label>
                                         <Slider x:Name="SGT_minInvalidStructureArea_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="5" Margin="0" Maximum="10000" Minimum="0" Value="100" IsSnapToTickEnabled="True" TickFrequency="1"/>
                                         <TextBox Name="SGT_minInvalidStructureArea_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="5" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=SGT_minInvalidStructureArea_slider, Path=Value}" TextAlignment="Right"/>
 

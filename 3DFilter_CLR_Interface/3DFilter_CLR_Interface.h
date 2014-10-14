@@ -149,6 +149,8 @@ namespace TestCVclass {
 		bool saveDst2DImage(System::String ^filename);
 		bool saveHeightMap(System::String ^filename);
 		bool readHeightMap(System::String ^filename);
+		bool saveSegments(System::String ^filename);
+		bool loadSegments(System::String ^filename);
 		void generateDepthMap();
 		void watershed3D(float stride);
 		/*
@@ -160,6 +162,7 @@ namespace TestCVclass {
 		void calcHmapAreaCall(int reso);
 		void applyBlightnessContrast();
 		void selectSegment(int x, int y, int z);
+		void selectSegment_OrthoXY(int x, int y, int z);
 		void selectAllSegments();
 		void deselectSegment();
 		void selectSegments_TH(float th);
