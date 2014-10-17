@@ -173,7 +173,7 @@
                                     <Label Foreground="#FFFFFF">Height Map</Label>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="H_show_cb" IsChecked="True" Height="20" Margin="12,2,0,0">Show Height Map</CheckBox>
+                                    <CheckBox x:Name="H_show_cb" IsChecked="True" Height="20" Margin="12,2,0,0" Checked="H_projParamsChanged" Unchecked="H_projParamsChanged">Show Height Map</CheckBox>
                                     <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>

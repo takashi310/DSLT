@@ -236,8 +236,7 @@ namespace WpfApplication1
         private void updateImgYZ()
         {
             if (c1.empty()) return;
-            c1.setHmapVisibility(H_show_cb.IsChecked.Value);
-			c1.setDepthCodeEnable(DC_cb.IsChecked.Value);
+            c1.setDepthCodeEnable(DC_cb.IsChecked.Value);
 			c1.setZBCEnable(ZBC_cb.IsChecked.Value);
             IntPtr data;
             int byteperpixel, width, height;
@@ -252,8 +251,7 @@ namespace WpfApplication1
         private void updateImgZX()
         {
             if (c1.empty()) return;
-            c1.setHmapVisibility(H_show_cb.IsChecked.Value);
-			c1.setDepthCodeEnable(DC_cb.IsChecked.Value);
+            c1.setDepthCodeEnable(DC_cb.IsChecked.Value);
 			c1.setZBCEnable(ZBC_cb.IsChecked.Value);
             IntPtr data;
             int byteperpixel, width, height;
@@ -484,6 +482,7 @@ namespace WpfApplication1
 			c1.setHmapProjRange((float)H_range_slider.Value);
 			c1.setDmapRange((float)DC_range_slider.Value);
 			c1.setHmapActivity(H_hproj_cb.IsChecked.Value);
+            c1.setHmapVisibility(H_show_cb.IsChecked.Value);
 			if (H_normal_rb.IsChecked.Value) c1.setProjectionMode(0);
 			else c1.setProjectionMode(1);
 			c1.setDepthCodeEnable(DC_cb.IsChecked.Value);
@@ -1233,7 +1232,10 @@ namespace WpfApplication1
 
         private void H_projParamsChanged(object sender, RoutedEventArgs e)
         {
+            if (H_hproj_cb == null || H_show_cb == null || H_normal_rb == null || H_offset_slider == null || H_range_slider == null || H_depth_slider == null || H_proj_th_slider == null) return;
+
             c1.setHmapActivity(H_hproj_cb.IsChecked.Value);
+            c1.setHmapVisibility(H_show_cb.IsChecked.Value);
             if (H_normal_rb.IsChecked.Value) c1.setProjectionMode(0);
             else c1.setProjectionMode(1);
             c1.setHmapOffset((float)H_offset_slider.Value);
