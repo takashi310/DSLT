@@ -5768,6 +5768,11 @@ void Filter3D::generateGraphTemplate()
 			  Point2i(GRAPH_DATA_AREA_COORD_X + graphW - GRAPH_TEXT_AREA_WIDTH, GRAPH_DATA_AREA_COORD_Y + GRAPH_DATA_AREA_HEIGHT),
 			  Scalar(255, 255, 255)
 			  );
+
+	ss.str("");
+	ss << "X";
+	textsize = getTextSize(ss.str(), FONT_HERSHEY_SIMPLEX, 0.6, 1, NULL);
+	putText(gtmatx, ss.str(), Point2i(10, GRAPH_DATA_AREA_COORD_Y + GRAPH_DATA_AREA_HEIGHT/2 + textsize.height/2), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255,255,255), 1);
 	
 	rectangle(gtmaty,
 			  Point2i(GRAPH_DATA_AREA_COORD_X, GRAPH_DATA_AREA_COORD_Y),
@@ -5775,11 +5780,21 @@ void Filter3D::generateGraphTemplate()
 			  Scalar(255, 255, 255)
 			  );
 
+	ss.str("");
+	ss << "Y";
+	textsize = getTextSize(ss.str(), FONT_HERSHEY_SIMPLEX, 0.6, 1, NULL);
+	putText(gtmaty, ss.str(), Point2i(10, GRAPH_DATA_AREA_COORD_Y + GRAPH_DATA_AREA_HEIGHT/2 + textsize.height/2), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255,255,255), 1);
+
 	rectangle(gtmatz,
 			  Point2i(GRAPH_DATA_AREA_COORD_X, GRAPH_DATA_AREA_COORD_Y),
 			  Point2i(GRAPH_DATA_AREA_COORD_X + graphW - GRAPH_TEXT_AREA_WIDTH, GRAPH_DATA_AREA_COORD_Y + GRAPH_DATA_AREA_HEIGHT),
 			  Scalar(255, 255, 255)
 			  );
+
+	ss.str("");
+	ss << "Z";
+	textsize = getTextSize(ss.str(), FONT_HERSHEY_SIMPLEX, 0.6, 1, NULL);
+	putText(gtmatz, ss.str(), Point2i(10, GRAPH_DATA_AREA_COORD_Y + GRAPH_DATA_AREA_HEIGHT/2 + textsize.height/2), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255,255,255), 1);
 }
 
 void Filter3D::setXPlotGraph(int x, int y, int z, float bc_max, float bc_min, bool depthBC, float d_coefficient, float d_order)
