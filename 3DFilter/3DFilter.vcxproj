@@ -146,6 +146,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>cublas.lib;MultiTiffIO.lib;ConvolutionSeparableGPU.lib;opencv_core245.lib;opencv_imgproc245.lib;opencv_highgui245.lib;opencv_objdetect245.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>false</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetDir)$(TargetName).lib" "$(SolutionDir)lib\$(PlatformName)\$(TargetName).lib"</Command>

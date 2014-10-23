@@ -135,6 +135,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>3DFilter.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <LargeAddressAware>false</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>

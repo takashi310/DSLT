@@ -6637,92 +6637,77 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 	if(d_Output)checkCudaErrors( cudaFree(d_Output) );
 	checkCudaErrors( cudaDeviceSynchronize() );
 
-	int diameter = radius*2 + 1;
-
 	int *segroi = new int[imageW*imageH*imageZ];
-	int *d_Seg, *d_SegOut;
-	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
-	checkCudaErrors( cudaMalloc((void **)(&d_SegOut) , imageZ * imageW * imageH * sizeof(int)) );
-	int *d_SegROI;
-	checkCudaErrors( cudaMalloc((void **)(&d_SegROI) , imageZ * imageW * imageH * sizeof(int)) );
 
-	checkCudaErrors( cudaMemcpy(d_Seg, segdata, imageW * imageH * imageZ * sizeof(int), cudaMemcpyHostToDevice) );
-	checkCudaErrors( cudaMemcpy(d_SegOut, d_Seg, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToDevice) );
+	vector<char> seg_isSelected(segments->size(), 0);
+	for(unsigned int i = 0; i < selected_segment->size(); i++)seg_isSelected[(*selected_segment)[i]] = 1;
 
-	for(int i = 0; i < selected_segment->size(); i++){
-		if((*segments)[(*selected_segment)[i]].size() <= 0)continue;
-
-		Box3D sbbox = (*seg_bbox)[(*selected_segment)[i]];
-		Box3D bb;
-		bb.x = (sbbox.x - diameter >= 0) ? sbbox.x - diameter : 0;
-		bb.y = (sbbox.y - diameter >= 0) ? sbbox.y - diameter : 0;
-		bb.z = (sbbox.z - diameter >= 0) ? sbbox.z - diameter : 0;
-		bb.width  = (sbbox.x + (sbbox.width  - 1) + diameter < imageW) ? sbbox.x + (sbbox.width  - 1) + diameter - bb.x + 1 : (imageW - 1) - bb.x + 1;
-		bb.height = (sbbox.y + (sbbox.height - 1) + diameter < imageH) ? sbbox.y + (sbbox.height - 1) + diameter - bb.y + 1 : (imageH - 1) - bb.y + 1;
-		bb.depth  = (sbbox.z + (sbbox.depth  - 1) + diameter < imageZ) ? sbbox.z + (sbbox.depth  - 1) + diameter - bb.z + 1 : (imageZ - 1) - bb.z + 1;
-
-		cropIntGPU(d_SegROI, d_Seg, imageW, imageH, imageZ, bb.x, bb.y, bb.z, bb.width, bb.height, bb.depth);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		initCuda_Suf3D_Int(d_SegROI, bb.width, bb.height, bb.depth, cudaMemcpyDeviceToDevice);
-		
-		checkCudaErrors( cudaDeviceSynchronize() );
-		if(radius >= 4){
-			for(int i = 0; i < radius / 4; i++){
-				dilateSegmentsSurfaceSphereGPU(4, bb.width, bb.height, bb.depth);
-				checkCudaErrors( cudaDeviceSynchronize() );
-			}
-			if(radius % 4 > 0){
-				dilateSegmentsSurfaceSphereGPU(radius % 4, bb.width, bb.height, bb.depth);
-				checkCudaErrors( cudaDeviceSynchronize() );
+	for(int z = 0; z < imageZ; z++){
+		for(int y = 0; y < imageH; y++){
+			for(int x = 0; x < imageW; x++){
+				
+				int id = segdata[z*imageH*imageW + y*imageW + x];
+				if(id < 0){
+					segroi[z*imageH*imageW + y*imageW + x] = SEGMENT_BLANK;
+					continue;
+				}
+				
+				if(seg_isSelected[id] == 1)segroi[z*imageH*imageW + y*imageW + x] = id;
+				else segroi[z*imageH*imageW + y*imageW + x] = SEGMENT_BLANK;
+				
 			}
 		}
-		else {
-			dilateSegmentsSurfaceSphereGPU(radius, bb.width, bb.height, bb.depth);
+	}
+
+	initCuda_Suf3D_Int(segroi, imageW, imageH, imageZ, cudaMemcpyHostToDevice);
+
+	checkCudaErrors( cudaDeviceSynchronize() );
+	if(radius >= 4){
+		for(int i = 0; i < radius / 4; i++){
+			dilateSegmentsSurfaceSphereGPU(4, imageW, imageH, imageZ);
 			checkCudaErrors( cudaDeviceSynchronize() );
 		}
-		
-		copyToDeviceMemFromSuf3D_Int(d_SegROI, bb.width, bb.height, bb.depth);
-		checkCudaErrors( cudaDeviceSynchronize() );
-		
-		checkCudaErrors( cudaMemcpy(segroi, d_SegROI, bb.width * bb.height * bb.depth * sizeof(int), cudaMemcpyDeviceToHost) );
-		std::vector<cv::Point3i>().swap((*segments)[(*selected_segment)[i]]);
-		int xmin = imageW, xmax = 0, ymin = imageH, ymax = 0, zmin = imageZ, zmax = 0;
-		for(int z = 0; z < bb.depth; z++){
-			for(int y = 0; y < bb.height; y++){
-				for(int x = 0; x < bb.width; x++){
-					if(segroi[z*bb.height*bb.width + y*bb.width + x] == (*selected_segment)[i]){
-						(*segments)[(*selected_segment)[i]].push_back(Point3i(bb.x + x, bb.y + y, bb.z + z));
-						if(xmin > bb.x + x)xmin = bb.x + x;
-						if(ymin > bb.y + y)ymin = bb.y + y;
-						if(zmin > bb.z + z)zmin = bb.z + z;
-						if(xmax < bb.x + x)xmax = bb.x + x;
-						if(ymax < bb.y + y)ymax = bb.y + y;
-						if(zmax < bb.z + z)zmax = bb.z + z;
-					}
-				}
-			}
+		if(radius % 4 > 0){
+			dilateSegmentsSurfaceSphereGPU(radius % 4, imageW, imageH, imageZ);
+			checkCudaErrors( cudaDeviceSynchronize() );
 		}
-
-		(*seg_bbox)[(*selected_segment)[i]].x = xmin;
-		(*seg_bbox)[(*selected_segment)[i]].y = ymin;
-		(*seg_bbox)[(*selected_segment)[i]].z = zmin;
-		(*seg_bbox)[(*selected_segment)[i]].width  = xmax - xmin + 1;
-		(*seg_bbox)[(*selected_segment)[i]].height = ymax - ymin + 1;
-		(*seg_bbox)[(*selected_segment)[i]].depth  = zmax - zmin + 1;
-
-		destructCuda_Suf3D();
-		copySingleSegmentIntOffsetGPU(d_SegOut, d_SegROI, (*selected_segment)[i], imageW, imageH, imageZ, bb.x, bb.y, bb.z, bb.width, bb.height, bb.depth);
+	}
+	else {
+		dilateSegmentsSurfaceSphereGPU(radius, imageW, imageH, imageZ);
 		checkCudaErrors( cudaDeviceSynchronize() );
 	}
 
-	checkCudaErrors( cudaMemcpy(segdata, d_SegOut, imageW * imageH * imageZ * sizeof(int), cudaMemcpyDeviceToHost) );
+	copyToHostMemFromSuf3D_Int(segroi, imageW, imageH, imageZ);
+	checkCudaErrors( cudaDeviceSynchronize() );
+	destructCuda_Suf3D();
+	checkCudaErrors( cudaDeviceSynchronize() );
+
+	vector<Point3i> bbmin;
+	for(int z = 0; z < imageZ; z++){
+		for(int y = 0; y < imageH; y++){
+			for(int x = 0; x < imageW; x++){
+				
+				int srcid = segdata[z*imageH*imageW + y*imageW + x];
+				int dstid = segroi[z*imageH*imageW + y*imageW + x];
+				if(srcid < 0 && dstid >= 0){
+					segdata[z*imageH*imageW + y*imageW + x] = dstid;
+					
+					Box3D *bb = &((*seg_bbox)[dstid]);
+					if(x < bb->x){ bb->width  += bb->x - x; bb->x = x; }
+					if(y < bb->y){ bb->height += bb->y - y; bb->y = y; }
+					if(z < bb->z){ bb->depth  += bb->z - z; bb->z = z; }
+					if(x > bb->x + bb->width  - 1)bb->width  = x - bb->x + 1;
+					if(y > bb->y + bb->height - 1)bb->height = y - bb->y + 1;
+					if(z > bb->z + bb->depth  - 1)bb->depth  = z - bb->z + 1;
+
+				}
+
+			}
+		}
+	}
 
 	delete [] segroi;
-	checkCudaErrors( cudaFree(d_Seg) );
-	checkCudaErrors( cudaFree(d_SegOut) );
-	checkCudaErrors( cudaFree(d_SegROI) );
 
-	checkCudaErrors( cudaDeviceSynchronize() );
 	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Buffer) , imageZ * imageW * imageH * sizeof(float)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
