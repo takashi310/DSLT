@@ -6950,6 +6950,7 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	copyToHostMemFromSuf3D_Int(segdata, imageW, imageH, imageZ);
 
 	destructCuda_Suf3D();
+	checkCudaErrors( cudaDeviceSynchronize() );
 	checkCudaErrors( cudaFree(d_Seg) );
 	checkCudaErrors( cudaFree(d_Seg_ref) );
 
@@ -6957,10 +6958,21 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	checkCudaErrors( cudaMalloc((void **)(&d_Output),  imageZ * imageW * imageH * sizeof(float)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Tmp) , imageZ * imageW * imageH * sizeof(float)) );
 
+	for(int i = 0; i < segments->size(); i++)std::vector<cv::Point3i>().swap((*segments)[i]);
 	for(int z = 0; z < imageZ; z++){
 		for(int y = 0; y < imageH; y++){
 			for(int x = 0; x < imageW; x++){
-				if(segdata[z*imageH*imageW + y*imageW + x] >= 0)(*segments)[segdata[z*imageH*imageW + y*imageW + x]].push_back(Point3i(x, y, z));
+				int id = segdata[z*imageH*imageW + y*imageW + x];
+				if(id >= 0){
+					(*segments)[id].push_back(Point3i(x, y, z));
+					Box3D *bb = &((*seg_bbox)[id]);
+					if(x < bb->x){ bb->width  += bb->x - x; bb->x = x; }
+					if(y < bb->y){ bb->height += bb->y - y; bb->y = y; }
+					if(z < bb->z){ bb->depth  += bb->z - z; bb->z = z; }
+					if(x > bb->x + bb->width  - 1)bb->width  = x - bb->x + 1;
+					if(y > bb->y + bb->height - 1)bb->height = y - bb->y + 1;
+					if(z > bb->z + bb->depth  - 1)bb->depth  = z - bb->z + 1;
+				}
 			}
 		}
 	}

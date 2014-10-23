@@ -135,6 +135,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <LargeAddressAware>false</LargeAddressAware>
     </Link>
     <CudaCompile>
       <CodeGeneration>compute_30,sm_30;%(CodeGeneration)</CodeGeneration>
