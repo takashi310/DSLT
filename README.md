@@ -1,7 +1,7 @@
 DSLT Demo
 ======================
 DSLT Demo is a software for segmentation of anatomical structures in confocal images.  
-Requirements: CUDA Toolkit
+Requirement: CUDA Toolkit
 <br>
 Precompiled Binaries
 ------
