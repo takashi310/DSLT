@@ -365,7 +365,20 @@
                                     <Label Foreground="#FFFFFF">Segment</Label>
                                 </GroupBox.Header>
                                 <StackPanel>
-                                    <CheckBox x:Name="SG_cb" Height="20" Margin="12,2,0,0" IsChecked="True" Checked="SG_cb_Checked" Unchecked="SG_cb_Unchecked">Show Segments</CheckBox>
+                                    <Grid Width="Auto" Height="Auto" Margin="0,3,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Label Grid.Column="0" Grid.Row="0" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=SG_src_cb}">Show Segments</Label>
+                                        <CheckBox x:Name="SG_src_cb" Height="20" Margin="12,0,12,0" IsChecked="True" Checked="SG_src_cb_Checked" Unchecked="SG_src_cb_Unchecked" HorizontalAlignment="Left" Grid.Column="1" Grid.Row="0">Src</CheckBox>
+                                        <CheckBox x:Name="SG_dst_cb" Height="20" Margin="12,0,12,0" IsChecked="True" Checked="SG_dst_cb_Checked" Unchecked="SG_dst_cb_Unchecked" HorizontalAlignment="Left" Grid.Column="2" Grid.Row="0">Dst</CheckBox>
+                                    </Grid>
                                     <Grid Width="Auto" Height="Auto">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="95"/>

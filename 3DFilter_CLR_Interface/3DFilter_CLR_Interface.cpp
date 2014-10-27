@@ -161,24 +161,24 @@ bool Class1::saveSrc2DImage(System::String ^filename)
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show_src, seg_minVol);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show_src, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 
 	string fnameYZ = c_str;
 	size_t found = fnameYZ.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameYZ.insert(found, "YZ");
-	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show_src, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	string fnameZX = c_str;
 	found = fnameZX.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameZX.insert(found, "ZX");
-	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show_src, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
 	return (flt3d->savebufXY(c_str) && flt3d->savebufYZ(fnameYZ.c_str()) && flt3d->savebufZX(fnameZX.c_str()));
 	/*
@@ -202,24 +202,24 @@ bool Class1::saveDst2DImage(System::String ^filename)
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show_dst, seg_minVol);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show_dst, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 	
 	string fnameYZ = c_str;
 	size_t found = fnameYZ.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameYZ.insert(found, "YZ");
-	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show_dst, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	string fnameZX = c_str;
 	found = fnameZX.find_first_of(".");
 	if(found == string::npos)return false;
 	fnameZX.insert(found, "ZX");
-	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show_dst, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
 	return (flt3d->savebufXY(c_str) && flt3d->savebufYZ(fnameYZ.c_str()) && flt3d->savebufZX(fnameZX.c_str()));
 }
@@ -342,9 +342,14 @@ void Class1::setZBCparams(int channel, float coef, float order)
 	zbc_order = order;
 }
 
-void Class1::setSegVisibility(bool isVisible)
+void Class1::setSrcSegVisibility(bool isVisible)
 {
-	seg_show = isVisible;
+	seg_show_src = isVisible;
+}
+
+void Class1::setDstSegVisibility(bool isVisible)
+{
+	seg_show_dst = isVisible;
 }
 
 void Class1::setSegMinVol(int value)
@@ -387,12 +392,12 @@ unsigned long Class1::getImageDataArrayXY([Runtime::InteropServices::Out] IntPtr
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
+			else flt3d->heightMapSimpleProjection(flt3d->getImgData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show_src, seg_minVol);
 		}
 	}
 	else{
 		//printf("SimpleProjection Called\n");
-		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getImgData(), bc_max, bc_min, currentZ, hmap_range, seg_show_src, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 	//ptr = IntPtr(&(flt3d->getImgData()[currentZ*flt3d->getWidth()*flt3d->getHeight()]));
 	ptr = IntPtr(flt3d->getbufXY());
@@ -417,7 +422,7 @@ unsigned long Class1::getImageDataArrayYZ([Runtime::InteropServices::Out] IntPtr
 		return 0;
 	}
 
-	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getImgData(), currentX, bc_max, bc_min, seg_show_src, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	ptr = IntPtr(flt3d->getbufYZ());
 	bytesperpixel = sizeof(unsigned char)*3;
@@ -441,7 +446,7 @@ unsigned long Class1::getImageDataArrayZX([Runtime::InteropServices::Out] IntPtr
 		return 0;
 	}
 	
-	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getImgData(), currentY, bc_max, bc_min, seg_show_src, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	ptr = IntPtr(flt3d->getbufZX());
 	bytesperpixel = sizeof(unsigned char)*3;
@@ -469,11 +474,11 @@ unsigned long Class1::getDstImageDataArrayXY([Runtime::InteropServices::Out] Int
 		}
 		else{
 			if(dc_isEnable && !flt3d->dmap_empty())flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, true, 0.5f, true, dmap_range);
-			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show, seg_minVol);
+			else flt3d->heightMapSimpleProjection(flt3d->getDstData(), hmapoffset, hmap_depth, hmap_range, false, proj_th, false, 0, seg_show_dst, seg_minVol);
 		}
 	}
 	else{
-		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+		flt3d->simpleProjection(flt3d->getDstData(), bc_max, bc_min, currentZ, hmap_range, seg_show_dst, seg_minVol, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	}
 	//ptr = IntPtr(&(flt3d->getDstData()[currentZ*flt3d->getWidth()*flt3d->getHeight()]));
 	ptr = IntPtr(flt3d->getbufXY());
@@ -496,7 +501,7 @@ unsigned long Class1::getDstImageDataArrayYZ([Runtime::InteropServices::Out] Int
 		return 0;
 	}
 	
-	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferYZ(flt3d->getDstData(), currentX, bc_max, bc_min, seg_show_dst, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 	
 	ptr = IntPtr(flt3d->getbufYZ());
 	bytesperpixel = sizeof(unsigned char)*3;
@@ -517,7 +522,7 @@ unsigned long Class1::getDstImageDataArrayZX([Runtime::InteropServices::Out] Int
 		height = -1;
 		return 0;
 	}
-	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
+	flt3d->setBufferZX(flt3d->getDstData(), currentY, bc_max, bc_min, seg_show_dst, seg_minVol, hmap_isVisible, hmapoffset, hmap_range, dc_isEnable, dmap_coefficient, dmap_order, zbc_isEnable, zbc_channel, zbc_coefficient, zbc_order);
 
 	ptr = IntPtr(flt3d->getbufZX());
 	bytesperpixel = sizeof(unsigned char)*3;

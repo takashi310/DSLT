@@ -44,6 +44,8 @@ namespace WpfApplication1
         Point dragStartPos;
         DragAdorner dragGhost;
 
+        public const int VIEW_ID_SRC = 0;
+        public const int VIEW_ID_DST = 1;
 
         public MainWindow()
         {
@@ -491,7 +493,8 @@ namespace WpfApplication1
 			c1.setZBCEnable(ZBC_cb.IsChecked.Value);
 			c1.setZBCparams((int)ZBC_ch_slider.Value, (float)ZBC_coefficient_slider.Value, (float)ZBC_order_slider.Value);
 			c1.setSegMinVol((int)SG_min_size_slider.Value);
-			c1.setSegVisibility((bool)SG_cb.IsChecked.Value);
+			c1.setSrcSegVisibility((bool)SG_src_cb.IsChecked.Value);
+            c1.setDstSegVisibility((bool)SG_dst_cb.IsChecked.Value);
             c1.setCroppingParams(H_crop_cb.IsChecked.Value, H_crop_hmap_cb.IsChecked.Value, (int)H_upper_slider.Value, (int)H_lower_slider.Value, (int)H_halo_slider.Value);
 
 
@@ -770,7 +773,8 @@ namespace WpfApplication1
 
         private void segmentSelection(int x, int y, int z)
         {
-            if (SG_cb.IsChecked.Equals(true))
+
+            if (SG_src_cb.IsChecked.Equals(true) || SG_dst_cb.IsChecked.Equals(true))
             {
                 c1.selectSegment(x, y, z);
                 updateImg();
@@ -780,7 +784,7 @@ namespace WpfApplication1
 
         private void segmentSelectionXY(int x, int y, int z)
         {
-            if (SG_cb.IsChecked.Equals(true))
+            if (SG_src_cb.IsChecked.Equals(true) || SG_dst_cb.IsChecked.Equals(true))
             {
                 c1.selectSegment_OrthoXY(x, y, z);
                 updateImg();
@@ -1507,17 +1511,29 @@ namespace WpfApplication1
 			updateImg();
 		}
 
-		private void SG_cb_Checked(object sender, RoutedEventArgs e)
+		private void SG_src_cb_Checked(object sender, RoutedEventArgs e)
 		{
-			c1.setSegVisibility((bool)SG_cb.IsChecked.Value);
+			c1.setSrcSegVisibility((bool)SG_src_cb.IsChecked.Value);
 			updateImg();
 		}
 
-		private void SG_cb_Unchecked(object sender, RoutedEventArgs e)
+		private void SG_src_cb_Unchecked(object sender, RoutedEventArgs e)
 		{
-			c1.setSegVisibility((bool)SG_cb.IsChecked.Value);
+			c1.setSrcSegVisibility((bool)SG_src_cb.IsChecked.Value);
 			updateImg();
 		}
+
+        private void SG_dst_cb_Checked(object sender, RoutedEventArgs e)
+        {
+            c1.setDstSegVisibility((bool)SG_dst_cb.IsChecked.Value);
+            updateImg();
+        }
+
+        private void SG_dst_cb_Unchecked(object sender, RoutedEventArgs e)
+        {
+            c1.setDstSegVisibility((bool)SG_dst_cb.IsChecked.Value);
+            updateImg();
+        }
 
         private void SST_apply_button_Click(object sender, RoutedEventArgs e)
         {

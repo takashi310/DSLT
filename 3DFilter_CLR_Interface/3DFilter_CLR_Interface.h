@@ -39,7 +39,8 @@ namespace TestCVclass {
 		int zbc_channel;
 		float zbc_coefficient;
 		float zbc_order;
-		bool seg_show;
+		bool seg_show_src;
+		bool seg_show_dst;
 		int seg_minVol;
 		System::Drawing::Bitmap^ img_bmp;
 	public:
@@ -81,7 +82,8 @@ namespace TestCVclass {
 		void setDmapOrder(float value);
 		void setZBCEnable(bool isEnable);
 		void setZBCparams(int channel, float coef, float order);
-		void setSegVisibility(bool isVisible);
+		void setSrcSegVisibility(bool isVisible);
+		void setDstSegVisibility(bool isVisible);
 		void setSegMinVol(int value);
 		int getChannelNum();
 		void applyChanges();
