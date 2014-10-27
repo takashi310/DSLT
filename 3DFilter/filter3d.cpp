@@ -6879,9 +6879,7 @@ void Filter3D::watershed3D(float stride, int seg_minVol)
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg_ref) , imageZ * imageW * imageH * sizeof(int)) );
 	checkCudaErrors( cudaMalloc((void **)(&d_Seg) , imageZ * imageW * imageH * sizeof(int)) );
 	
-	int size = imageW*imageH*imageZ;
 	int base_ite = 0;
-	float epsilon = 1.0/256.0f;
 	for(int i = 1; i <= 256; i++){
 		float th = i / 256.0f;
 		int inner_ite = 0;
