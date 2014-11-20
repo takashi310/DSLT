@@ -464,6 +464,7 @@ bool Filter3D::loadSegData(const char filename[])
 
 bool Filter3D::saveSegData(const char filename[])
 {
+	
 	if(segments->size() == 0)return false;
 
 	string fn = filename;
@@ -488,6 +489,50 @@ bool Filter3D::saveSegData(const char filename[])
 	delete [] tmp;
 	
 	return res;
+	
+	/*
+	if(segments->size() == 0)return false;
+
+	string fn = filename;
+	size_t pos = fn.find_last_of('.');
+	if(pos != string::npos)fn = fn.substr(0, pos);
+
+	unsigned char *tmp = new unsigned char[imageW*imageH*imageZ];
+	for(int z = 0; z < imageZ; z++){
+		for(int y = 0; y < imageH; y++){
+			for(int x = 0; x < imageW; x++){
+				tmp[z*imageH*imageW + y*imageW + x] = 0;
+			}
+		}
+	}
+
+	for(int i = 0; i < selected_segment->size(); i++){
+		for(int j = 0; j < (*segments)[(*selected_segment)[i]].size(); j++){
+			int x = (*segments)[(*selected_segment)[i]][j].x;
+			int y = (*segments)[(*selected_segment)[i]][j].y;
+			int z = (*segments)[(*selected_segment)[i]][j].z;
+		
+			tmp[z*imageH*imageW + y*imageW + x] = 0xFF;
+		}
+
+		stringstream ss;
+		ss << fn.c_str() << "_" << i << ".tif";
+
+		multif::MultiTiffIO::SaveImageData(ss.str().c_str(), (char *)tmp, imageW, imageH, imageZ, sizeof(unsigned char)*8, 1);
+
+		for(int j = 0; j < (*segments)[(*selected_segment)[i]].size(); j++){
+			int x = (*segments)[(*selected_segment)[i]][j].x;
+			int y = (*segments)[(*selected_segment)[i]][j].y;
+			int z = (*segments)[(*selected_segment)[i]][j].z;
+		
+			tmp[z*imageH*imageW + y*imageW + x] = 0x00;
+		}
+	}
+
+	delete [] tmp;
+	
+	return true;
+	*/
 }
 
 void Filter3D::switchZScaling(int type)
@@ -6691,6 +6736,7 @@ void Filter3D::dilateSphereSelectedSegments(int radius)
 				int dstid = segroi[z*imageH*imageW + y*imageW + x];
 				if(srcid < 0 && dstid >= 0){
 					segdata[z*imageH*imageW + y*imageW + x] = dstid;
+					(*segments)[dstid].push_back(Point3i(x, y, z));
 					
 					Box3D *bb = &((*seg_bbox)[dstid]);
 					if(x < bb->x){ bb->width  += bb->x - x; bb->x = x; }
