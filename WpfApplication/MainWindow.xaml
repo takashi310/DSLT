@@ -223,7 +223,6 @@
                                         <Label Grid.Column="0" Grid.Row="3" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_th_slider}">Threshold</Label>
                                         <Slider x:Name="H_th_slider" Height="20" MaxWidth="200" Grid.Column="1" Grid.Row="3" Margin="0" Maximum="1" Minimum="0" Value="0.25"/>
                                         <TextBox Name="H_th_txt" Width="30" Height="20" Grid.Column="2" Grid.Row="3" Margin="12,0,12,0" FontSize="10" Text="{Binding ElementName=H_th_slider, Path=Value}" TextAlignment="Right"/>
-                                        <Label Grid.Column="0" Grid.Row="4" Height="20" Margin="12,0,12,0" Target="{Binding ElementName=H_offset_slider}">Offset</Label>
                                     </Grid>
                                     <Grid>
                                         <Button x:Name="H_generate_button" Width="80" Height="25" Margin="0,6,15,0" HorizontalAlignment="Right" Click="H_generate_button_Click">Generate</Button>
